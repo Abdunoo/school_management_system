@@ -6,7 +6,10 @@ import {
   AcademicCapIcon,
   CalendarIcon,
   ClipboardDocumentListIcon,
-  XMarkIcon
+  XMarkIcon,
+  BellIcon,
+  UserCircleIcon as AdminIcon,
+  Bars3BottomLeftIcon
 } from '@heroicons/vue/24/outline';
 
 const menuItems = [
@@ -18,11 +21,15 @@ const menuItems = [
   { name: 'Reports', icon: ClipboardDocumentListIcon, route: '/reports' }
 ];
 
+// New bottom menu items
+const bottomMenuItems = [
+  { name: 'Notifications', icon: BellIcon, route: '/notifications' },
+  { name: 'Admin', icon: AdminIcon, route: '/admin' }
+];
 
 defineProps<{
   toggleSidebar: () => void;
 }>();
-
 </script>
 
 <template>
@@ -40,6 +47,16 @@ defineProps<{
         {{ item.name }}
       </router-link>
     </nav>
+
+    <!-- Bottom Menu -->
+    <div class="mt-auto p-4 border-t">
+      <nav class="space-y-2">
+        <router-link v-for="item in bottomMenuItems" :key="item.name" :to="item.route" class="sidebar-link">
+          <component :is="item.icon" class="w-5 h-5" />
+          {{ item.name }}
+        </router-link>
+      </nav>
+    </div>
   </aside>
 </template>
 
