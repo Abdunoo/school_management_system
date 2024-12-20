@@ -7,9 +7,25 @@ use Illuminate\Http\Request;
 
 class ClassModelController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $classes = Classes::with('homeroomTeacher')->get();
+        $query = Classes::with('homeroomTeacher.user');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhereHas('homeroomTeacher.user', function ($q) use ($search) {
+                    $q->where('nip', 'like', '%' . $search . '%')
+                      ->orWhere('spesialisasi', 'like', '%' . $search . '%');
+                })
+                ->orWhere('academic_year','like', '%' . $search . '%');
+        }
+
+        $perPage = $request->input('per_page', 10);
+
+        $classes = $query->paginate($perPage);
+
         return response()->json($classes);
     }
 
