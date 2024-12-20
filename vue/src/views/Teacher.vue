@@ -3,31 +3,35 @@
         <!-- Table Controls -->
         <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
-            <div class="flex w-full justify-between space-x-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:space-x-6 space-y-4 sm:space-y-0">
                 <div class="flex items-center space-x-2">
-                    <label for="perPage" class="text-sm font-medium text-secondary">Show</label>
-                    <select id="perPage" v-model="perPage"
-                        class="border w-16 border-gray-300 bg-white text-secondary rounded-md text-sm px-3 py-2 focus:ring-primary focus:border-primary">
-                        <option v-for="option in perPageOptions" :key="option" :value="option">
-                            {{ option }}
-                        </option>
-                    </select>
+                    <div class="flex items-center space-x-2">
+                        <label for="perPage" class="text-sm font-medium text-secondary">Show</label>
+                        <select id="perPage" v-model="perPage"
+                            class="border w-16 border-gray-300 bg-white text-secondary rounded-md text-sm px-3 py-2 focus:ring-primary focus:border-primary">
+                            <option v-for="option in perPageOptions" :key="option" :value="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
                     <Button :variant="'primary'" @click="showAddTeacherModal = true">Tambah Guru</Button>
                 </div>
-                <div class="relative flex space-x-2 text-secondary">
-                    <Button @click="exportTeachers" :variant="'success'">Export</Button>
-                    <input type="text" v-model="searchQuery" placeholder="Search..." aria-label="Search teachers"
-                        class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2 placeholder-secondary focus:outline-none">
-                    <MagnifyingGlassIcon class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <Button :variant="'success'">Export</Button>
+                    <div class="relative flex items-center">
+                        <input type="text" v-model="searchQuery" placeholder="Search..." aria-label="Search teachers"
+                            class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2 placeholder-secondary focus:outline-none">
+                        <MagnifyingGlassIcon class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Teacher Table -->
-        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full">
+        <div class="rounded-xl border border-gray-300 bg-gray-50 max-h-full hidden lg:block">
             <table class="min-w-full table-auto text-sm text-left">
                 <thead>
-                    <tr class="bg-gray-100">
+                    <tr class="bg-gray-100 grid grid-cols-7">
                         <th class="px-4 py-3 text-secondary">NIP</th>
                         <th class="px-4 py-3 text-secondary">Mapel</th>
                         <th class="px-4 py-3 text-secondary">Telepon</th>
@@ -37,31 +41,59 @@
                         <th class="px-4 py-3 text-secondary">Actions</th>
                     </tr>
                 </thead>
+            </table>
+        </div>
+        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
+            <table class="min-w-full table-auto text-sm text-left">
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="teachers.length === 0">
                         <td colspan="7" class="text-center py-4 text-secondary">No teachers found.</td>
                     </tr>
-                    <tr v-for="teacher in teachers" :key="teacher.id" class="hover:bg-gray-100 transition">
+                    <tr v-for="teacher in teachers" :key="teacher.id"
+                        class="hover:bg-gray-100 transition grid grid-cols-7 items-center">
                         <td class="px-4 py-3 text-secondary">{{ teacher.nip }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.spesialisasi }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.telepon }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user.username }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user.email }}</td>
                         <td class="px-4 py-3 text-secondary">
-                            <Badge>{{ teacher.user.is_active ? 'Aktif' : 'Tidak Aktif' }}</Badge>
+                            <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">{{ teacher.user.is_active ?
+                                'Aktif' : 'Tidak Aktif' }}</Badge>
                         </td>
-                        <td class="px-4 py-3 space-x-2 flex">
+                        <td class="px-4 py-3">
                             <Button :variant="'warning'" @click="editTeacher(teacher)">Update</Button>
-                            <Button :variant="'danger'" @click="deleteTeacher(teacher.id)">Delete</Button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
+        <!-- Teacher Cards (Mobile Only) -->
+        <div class="lg:hidden space-y-4">
+            <div v-if="teachers.length === 0" class="text-center py-4 text-secondary">
+                No teachers found.
+            </div>
+            <div v-for="teacher in teachers" :key="teacher.id"
+                class="p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-secondary">{{ teacher.nip }}</h3>
+                    <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">{{ teacher.user.is_active ? 'Aktif'
+                        : 'Tidak Aktif' }}</Badge>
+                </div>
+                <p class="text-sm text-secondary mt-2"><strong>Mapel:</strong> {{ teacher.spesialisasi }}</p>
+                <p class="text-sm text-secondary"><strong>Telepon:</strong> {{ teacher.telepon }}</p>
+                <p class="text-sm text-secondary"><strong>Username:</strong> {{ teacher.user.username }}</p>
+                <p class="text-sm text-secondary"><strong>Email:</strong> {{ teacher.user.email }}</p>
+                <div class="flex space-x-2 mt-4">
+                    <Button :variant="'warning'" @click="editTeacher(teacher)">Update</Button>
+                </div>
+            </div>
+        </div>
+
         <!-- Pagination -->
         <div class="flex justify-center space-x-2 mt-4">
-            <Button :variant="'secondary'" @click="currentPage--" class="bg-gray-200 px-4 py-2 rounded">
+            <Button :variant="'secondary'" @click="currentPage--" :disabled="currentPage === 1"
+                class="bg-gray-200 px-4 py-2 rounded">
                 Previous
             </Button>
             <Button v-for="page in totalPages" :key="page" @click="currentPage = page" :variant="'secondary'" :class="{
@@ -71,14 +103,15 @@
                 {{ page }}
             </Button>
 
-            <Button :variant="'secondary'" @click="currentPage++" class="bg-gray-200 px-4 py-2 rounded">
+            <Button :variant="'secondary'" @click="currentPage++" :disabled="currentPage === totalPages"
+                class="bg-gray-200 px-4 py-2 rounded">
                 Next
             </Button>
         </div>
 
         <!-- Add/Edit Teacher Modal -->
-        <TransitionRoot as="template" :show="showAddTeacherModal || showEditTeacherModal" @close="open = false">
-            <Dialog class="relative z-10" @close="open = false">
+        <TransitionRoot as="template" :show="showAddTeacherModal || showEditTeacherModal" @close="resetModal">
+            <Dialog class="relative z-10" @close="resetModal">
                 <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0"
                     enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-gray-500/75 transition-opacity" />
@@ -139,16 +172,16 @@
                                             <div>
                                                 <label for="email"
                                                     class="block text-sm font-medium text-gray-700">Email</label>
-                                                <input v-model="form.email" type="email" id="email" required
+                                                <input v-model="form.user.email" type="email" id="email" required
                                                     class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
                                             </div>
                                             <div>
                                                 <label for="isActive"
                                                     class="block text-sm font-medium text-gray-700">Status</label>
-                                                <select v-model="form.is_active" id="isActive"
+                                                <select v-model="form.user.is_active" id="isActive"
                                                     class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                                    <option :value="true">Aktif</option>
-                                                    <option :value="false">Tidak Aktif</option>
+                                                    <option :value="1">Aktif</option>
+                                                    <option :value="0">Tidak Aktif</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -157,14 +190,14 @@
 
                                 <!-- Modal Footer -->
                                 <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                                    <button type="button"
+                                    <Button
                                         class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                                        @click=" showAddTeacherModal = false">Cancel</button>
-                                    <button type="button"
+                                        @click="resetModal">Cancel</Button>
+                                    <Button
                                         class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
                                         @click="showEditTeacherModal ? updateTeacher() : createTeacher()">
                                         {{ showEditTeacherModal ? 'Update' : 'Add' }}
-                                    </button>
+                                    </Button>
                                 </div>
                             </DialogPanel>
                         </TransitionChild>
@@ -175,16 +208,17 @@
     </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import apiClient from '@/helpers/axios';
+<script setup lang="ts">
+import { ref, onMounted, watch, computed } from 'vue';
 import Button from '@/components/common/Button.vue';
+import { Teacher } from '@/types';
+import apiClient from '@/helpers/axios';
 import Badge from '@/components/common/Badge.vue';
 import { ExclamationTriangleIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 
-const pageTitle = ref('Teachers Management');
-const teachers = ref([]);
+const pageTitle = ref('Daftar Guru');
+const teachers = ref<Teacher[]>([]);
 const perPageOptions = [10, 20, 30];
 const perPage = ref(perPageOptions[0]);
 const currentPage = ref(1);
@@ -194,15 +228,22 @@ const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value))
 
 const showAddTeacherModal = ref(false);
 const showEditTeacherModal = ref(false);
-const form = ref({
-    id: null,
+const form = ref<Teacher>({
+    id: 0,
+    user_id: 0,
     nip: '',
     spesialisasi: '',
     telepon: '',
-    email: '',
-    is_active: true,
+    user: {
+        id: 0,
+        username: '',
+        email: '',
+        role: 'teacher',
+        is_active: 1,
+        created_at: new Date(),
+        updated_at: new Date(),
+    },
 });
-
 const fetchTeachers = async () => {
     try {
         const response = await apiClient.get('/api/teachers', {
@@ -229,7 +270,7 @@ const createTeacher = async () => {
     }
 };
 
-const editTeacher = (teacher) => {
+const editTeacher = (teacher: Teacher) => {
     form.value = { ...teacher };
     showEditTeacherModal.value = true;
 };
@@ -244,27 +285,25 @@ const updateTeacher = async () => {
     }
 };
 
-const deleteTeacher = async (id) => {
-    if (confirm('Are you sure you want to delete this teacher?')) {
-        try {
-            await apiClient.delete(`/api/teachers/${id}`);
-            fetchTeachers();
-        } catch (error) {
-            console.error('Failed to delete teacher:', error);
-        }
-    }
-};
-
 const resetModal = () => {
     showAddTeacherModal.value = false;
     showEditTeacherModal.value = false;
+    form.value = <Teacher>{};
     form.value = {
-        id: null,
+        id: 0,
+        user_id: 0,
         nip: '',
         spesialisasi: '',
         telepon: '',
-        email: '',
-        is_active: true,
+        user: {
+            id: 0,
+            username: '',
+            email: '',
+            role: 'teacher',
+            is_active: 1,
+            created_at: new Date(),
+            updated_at: new Date(),
+        },
     };
 };
 

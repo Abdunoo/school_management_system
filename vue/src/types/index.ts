@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  id: number;
   username: string; // Added username property
   email: string;
   role: 'admin' | 'teacher' | 'student';
@@ -9,34 +9,37 @@ export interface User {
 }
 
 export interface Teacher {
-  id: number; // Changed to number based on the response
-  user_id: number; // Changed to number based on the response
+  id?: number; // Changed to number based on the response
+  user_id?: number; // Changed to number based on the response
   nip: string;
   spesialisasi: string;
   telepon: string;
-  created_at: Date; // Added created_at property
-  updated_at: Date; // Added updated_at property
+  created_at?: Date;
+  updated_at?: Date;
   user: User; // Nested user object
 }
 
 export interface Student {
-  id: string;
+  id: number;
   name: string;
   grade: string;
   class: string;
   // Add more student properties as needed
 }
 
-export interface Class {
-  id: string;
-  name: string;
-  teacher: string;
-  schedule: string;
-  // Add more class properties as needed
+export interface ClassItem {
+  id?: number;
+  name?: string;
+  academic_year: string;
+  homeroom_teacher_id?: number;
+  is_active: number;
+  created_at?: Date;
+  updated_at?: Date;
+  homeroom_teacher: Teacher; 
 }
 
 export interface ActivityLog {
-  id: string;
+  id: number;
   type: string;
   description: string;
   timestamp: Date;
