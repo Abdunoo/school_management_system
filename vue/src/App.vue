@@ -9,10 +9,10 @@ const toggleSidebar = () => {
   isSidebarVisible.value = !isSidebarVisible.value;
 };
 
-const isMobile = ref(window.innerWidth <= 768);
+const isMobile = ref(window.innerWidth <= 1024);
 
 const updateIsMobile = () => {
-  isMobile.value = window.innerWidth <= 768;
+  isMobile.value = window.innerWidth <= 1024;
 };
 
 onMounted(() => {
@@ -36,14 +36,14 @@ onUnmounted(() => {
         <Sidebar
           v-show="isSidebarVisible"
           :toggleSidebar="toggleSidebar"
-          class="w-64 h-full fixed lg:absolute inset-y-0 transform z-50 bg-white"
+          class="w-64 h-full fixed lg:absolute inset-y-0 transform z-20 bg-white"
         />
       </transition>
 
       <!-- Overlay -->
       <div
         v-if="isSidebarVisible && isMobile"
-        class="fixed inset-0 bg-black bg-opacity-50 z-40"
+        class="fixed inset-0 bg-black bg-opacity-50 z-10"
         @click="toggleSidebar"
       ></div>
 
