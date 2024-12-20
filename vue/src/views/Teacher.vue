@@ -2,7 +2,7 @@
     <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col" style="max-height: 100vh;">
 
         <!-- Table Controls -->
-        <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
+        <div class="space-y-4 bg-gray-100 p-4 rounded-lg ">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
             <div class="flex w-full justify-between space-x-6">
                 <div class="flex items-center space-x-2">
@@ -25,8 +25,8 @@
             </div>
         </div>
 
-        <div class="rounded-xl border border-gray-300 bg-gray-50 ">
-            <table class="min-w-full table-auto text-sm text-left space-y-8 hidden md:table">
+        <div class="rounded-xl border border-gray-300 bg-gray-50 hidden md:table">
+            <table class="min-w-full table-auto text-sm text-left space-y-8 hidden md:flex">
                 <thead>
                     <tr class="bg-gray-100 grid grid-cols-7">
                         <th class="px-4 py-3 text-secondary">NIP</th>
@@ -41,7 +41,7 @@
             </table>
         </div>
 
-        <div class="overflow-y-auto max-h-full h-3/6 rounded-xl border border-gray-300 bg-gray-50 ">
+        <div class="overflow-y-auto max-h-full h-3/6 rounded-xl border border-gray-300 bg-gray-50 hidden md:flex">
             <table class="min-w-full table-auto text-sm text-left space-y-8 hidden md:table">
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="teachers.length === 0">
