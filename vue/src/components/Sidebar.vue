@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { 
+import {
   HomeIcon,
-  UserCircleIcon, 
-  UserGroupIcon, 
+  UserCircleIcon,
+  UserGroupIcon,
   AcademicCapIcon,
   CalendarIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline';
 
 const menuItems = [
@@ -16,23 +17,25 @@ const menuItems = [
   { name: 'Schedule', icon: CalendarIcon, route: '/schedule' },
   { name: 'Reports', icon: ClipboardDocumentListIcon, route: '/reports' }
 ];
+
+
+defineProps<{
+  toggleSidebar: () => void;
+}>();
+
 </script>
 
 <template>
-  <aside class="w-64 bg-white border-r rounded-r-3xl">
+  <aside class="w-52 lg:w-64 bg-white border-r rounded-r-3xl">
     <!-- Logo -->
-    <div class="p-4 border-b">
+    <div class="p-4 border-b flex items-center justify-between">
       <h1 class="text-xl font-bold text-gray-800">Logo</h1>
+      <XMarkIcon class="w-5 h-5 lg:hidden" @click="toggleSidebar" />
     </div>
 
     <!-- Navigation -->
     <nav class="p-4 space-y-2">
-      <router-link
-        v-for="item in menuItems"
-        :key="item.name"
-        :to="item.route"
-        class="sidebar-link"
-      >
+      <router-link v-for="item in menuItems" :key="item.name" :to="item.route" class="sidebar-link">
         <component :is="item.icon" class="w-5 h-5" />
         {{ item.name }}
       </router-link>

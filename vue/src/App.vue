@@ -1,34 +1,58 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import Sidebar from './components/Sidebar.vue';
 import Header from './components/Header.vue';
 
-const isSidebarVisible = ref(true);
+const isSidebarVisible = ref(false);
 
 const toggleSidebar = () => {
   isSidebarVisible.value = !isSidebarVisible.value;
 };
+
+const isMobile = ref(window.innerWidth <= 768);
+
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', updateIsMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIsMobile);
+});
 </script>
 
 <template>
   <div class="flex flex-col h-screen bg-gray-100">
+    <!-- Header -->
     <Header class="mb-8" :toggleSidebar="toggleSidebar" />
 
+    <!-- Wrapper Konten -->
     <div class="h-full flex overflow-hidden relative">
-      <!-- Sidebar dengan Transisi Geser -->
+      <!-- Sidebar dengan Transisi -->
       <transition name="slide" appear>
         <Sidebar
           v-show="isSidebarVisible"
-          class="w-64 h-full absolute inset-y-0 transform"
+          :toggleSidebar="toggleSidebar"
+          class="w-64 h-full fixed lg:absolute inset-y-0 transform z-50 bg-white"
         />
       </transition>
 
-      <!-- Konten Utama dengan Transisi Geser -->
+      <!-- Overlay -->
+      <div
+        v-if="isSidebarVisible && isMobile"
+        class="fixed inset-0 bg-black bg-opacity-50 z-40"
+        @click="toggleSidebar"
+      ></div>
+
+      <!-- Konten Utama -->
       <main
-        :class="isSidebarVisible ? 'ml-72' : 'ml-0'"
+        :class="isSidebarVisible && !isMobile ? 'ml-72' : 'ml-0'"
         class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 rounded-3xl transition-all duration-300 ease-in-out"
       >
-        <router-view></router-view>
+        <router-view />
       </main>
     </div>
   </div>
@@ -42,22 +66,18 @@ const toggleSidebar = () => {
 }
 
 .slide-enter-from {
-  @apply -translate-x-full;
-  /* Sidebar masuk dari kiri */
+  transform: translateX(-100%);
 }
 
 .slide-enter-to {
-  @apply translate-x-0;
-  /* Sidebar berada di posisi normal */
+  transform: translateX(0);
 }
 
 .slide-leave-from {
-  @apply translate-x-0;
-  /* Sidebar keluar dari posisi normal */
+  transform: translateX(0);
 }
 
 .slide-leave-to {
-  @apply -translate-x-full;
-  /* Sidebar keluar ke kiri */
+  transform: translateX(-100%);
 }
 </style>
