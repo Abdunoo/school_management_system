@@ -11,8 +11,8 @@ const props = defineProps({
   variant: {
       type: String,
       default: 'primary',
-      validator: (value) => ['primary', 'success', 'secondary', 'warning', 'danger'].includes(value),
-  },
+      validator: (value: string) => ['primary', 'success', 'secondary', 'warning', 'danger'].includes(value),
+    },
 });
 
 const buttonClass = computed(() => {
