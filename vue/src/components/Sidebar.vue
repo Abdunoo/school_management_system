@@ -11,6 +11,7 @@ import {
   UserCircleIcon as AdminIcon,
   BookOpenIcon
 } from '@heroicons/vue/24/outline';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const menuItems = [
   { name: 'Dashboard', icon: HomeIcon, route: '/' },
@@ -28,6 +29,23 @@ const bottomMenuItems = [
   { name: 'Admin', icon: AdminIcon, route: '/admin' }
 ];
 
+const isMobileOrTablet = ref(false);
+
+// Function to check screen size
+const checkScreenSize = () => {
+  isMobileOrTablet.value = window.innerWidth <= 768; // Adjust the width as needed for tablet
+};
+
+// Event listeners for resizing
+onMounted(() => {
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize);
+});
+
 defineProps<{
   toggleSidebar: () => void;
 }>();
@@ -43,7 +61,13 @@ defineProps<{
 
     <!-- Navigation -->
     <nav class="p-4 space-y-2">
-      <router-link v-for="item in menuItems" :key="item.name" :to="item.route" class="sidebar-link">
+      <router-link 
+        v-for="item in menuItems" 
+        :key="item.name" 
+        :to="item.route" 
+        class="sidebar-link" 
+        @click="isMobileOrTablet ? toggleSidebar() : null"
+      >
         <component :is="item.icon" class="w-5 h-5" />
         {{ item.name }}
       </router-link>
@@ -52,7 +76,13 @@ defineProps<{
     <!-- Bottom Menu -->
     <div class="mt-auto p-4 border-t">
       <nav class="space-y-2">
-        <router-link v-for="item in bottomMenuItems" :key="item.name" :to="item.route" class="sidebar-link">
+        <router-link 
+          v-for="item in bottomMenuItems" 
+          :key="item.name" 
+          :to="item.route" 
+          class="sidebar-link" 
+          @click="isMobileOrTablet ? toggleSidebar() : null"
+        >
           <component :is="item.icon" class="w-5 h-5" />
           {{ item.name }}
         </router-link>

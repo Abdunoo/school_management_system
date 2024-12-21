@@ -36,7 +36,8 @@ onUnmounted(() => {
         <Sidebar
           v-show="isSidebarVisible"
           :toggleSidebar="toggleSidebar"
-          class="w-64 h-full fixed lg:absolute inset-y-0 transform z-20 bg-white"
+          class="w-64 h-full inset-y-0 transform z-20 bg-white"
+          :class=" !isMobile ? 'absolute' : 'fixed'"
         />
       </transition>
 
