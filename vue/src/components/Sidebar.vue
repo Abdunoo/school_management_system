@@ -18,7 +18,7 @@ const menuItems = [
   { name: 'Teachers', icon: UserCircleIcon, route: '/teachers' },
   { name: 'Students', icon: UserGroupIcon, route: '/students' },
   { name: 'Classes', icon: AcademicCapIcon, route: '/classes' },
-  { name: 'Subject', icon: BookOpenIcon, route: '/subject' },
+  { name: 'Subject', icon: BookOpenIcon, route: '/subjects' },
   { name: 'Schedule', icon: CalendarIcon, route: '/schedule' },
   { name: 'Reports', icon: ClipboardDocumentListIcon, route: '/reports' }
 ];

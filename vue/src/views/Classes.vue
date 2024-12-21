@@ -140,7 +140,7 @@ const form = ref<ClassItem>({
   academic_year: '',
   homeroom_teacher_id: 0,
   is_active: 1,
-  homeroom_teacher: { id: 0, user_id: 0, nip: '', spesialisasi: '', telepon: '' },
+  homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: '', telepon: '' },
 });
 const statusOptions = [
   { label: 'Active', value: 1 },
@@ -186,7 +186,7 @@ const resetForm = () => ({
   academic_year: '',
   homeroom_teacher_id: 0,
   is_active: 1,
-  homeroom_teacher: { id: 0, user_id: 0, nip: '', spesialisasi: '', telepon: '' },
+  homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: 0, telepon: '' },
 });
 
 const resetModal = () => {

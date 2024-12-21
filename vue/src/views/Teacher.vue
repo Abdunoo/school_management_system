@@ -52,7 +52,7 @@
                     <tr v-for="teacher in teachers" :key="teacher.id"
                         class="hover:bg-gray-100 transition grid grid-cols-7 items-center">
                         <td class="px-4 py-3 text-secondary">{{ teacher.nip }}</td>
-                        <td class="px-4 py-3 text-secondary">{{ teacher.spesialisasi }}</td>
+                        <td class="px-4 py-3 text-secondary">{{ teacher.subject?.name }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.telepon }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user.username }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user.email }}</td>
@@ -84,7 +84,7 @@
 
                 <!-- Content -->
                 <h3 class="text-lg font-bold text-secondary">{{ teacher.nip }}</h3>
-                <p class="text-sm text-secondary mt-2"><strong>Mapel:</strong> {{ teacher.spesialisasi }}</p>
+                <p class="text-sm text-secondary mt-2"><strong>Mapel:</strong> {{ teacher.subject?.name }}</p>
                 <p class="text-sm text-secondary"><strong>Telepon:</strong> {{ teacher.telepon }}</p>
                 <p class="text-sm text-secondary"><strong>Username:</strong> {{ teacher.user.username }}</p>
                 <p class="text-sm text-secondary"><strong>Email:</strong> {{ teacher.user.email }}</p>
@@ -104,7 +104,8 @@
         <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
             <form @submit.prevent="handleFormSubmit">
                 <FormField label="NIP" id="nip" v-model="form.nip" required />
-                <FormField label="Mapel" id="spesialisasi" v-model="form.spesialisasi" required />
+                <FormField id="mapel" label="Mapel" type="select" :options="subjectOption"
+                    placeholder="Bahasa Indonesia" v-model="form.subject.name" v-if="subjectOption.length > 0" />
                 <FormField label="Telepon" id="telepon" v-model="form.telepon" required />
                 <FormField label="Username" id="username" v-model="form.user.username" required />
                 <FormField label="Email" id="email" v-model="form.user.email" required />
@@ -122,7 +123,7 @@ import Button from '@/components/common/Button.vue';
 import Badge from '@/components/common/Badge.vue';
 import Modal from '@/components/common/Modal.vue';
 import FormField from '@/components/common/FormField.vue';
-import { Teacher } from '@/types';
+import { Subject, Teacher } from '@/types';
 import apiClient from '@/helpers/axios';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import debounce from 'lodash.debounce';
@@ -130,6 +131,7 @@ import Pagination from '@/components/common/Pagination.vue';
 
 const pageTitle = ref('Daftar Guru');
 const teachers = ref<Teacher[]>([]);
+const subjects = ref<Subject[]>([]);
 const perPageOptions = [10, 20, 30];
 const perPage = ref(perPageOptions[0]);
 const currentPage = ref(1);
@@ -143,7 +145,7 @@ const form = ref<Teacher>({
     id: 0,
     user_id: 0,
     nip: '',
-    spesialisasi: '',
+    subject_id: '',
     telepon: '',
     user: {
         id: 0,
@@ -175,12 +177,30 @@ const fetchTeachers = async () => {
     }
 };
 
+const fetchMapel = async () => {
+    try {
+        const response = await apiClient.get('/api/subjects');
+        subjects.value = response.data;
+        console.log(subjectOption.value)
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const subjectOption = computed(() =>
+    subjects.value.map((subject) => ({
+        label: `${subject.name}`,
+        value: subject.id,
+    }))
+);
+
 const debouncedFetchTeachers = debounce(() => {
     fetchTeachers();
 }, 300);
 
 onMounted(() => {
     debouncedFetchTeachers();
+    fetchMapel();
 });
 
 watch([perPage, currentPage, searchQuery], () => {
@@ -192,7 +212,7 @@ const resetModal = () => {
         id: 0,
         user_id: 0,
         nip: '',
-        spesialisasi: '',
+        subject_id: 0,
         telepon: '',
         user: {
             id: 0,
@@ -200,6 +220,11 @@ const resetModal = () => {
             email: '',
             is_active: 1,
         },
+        subject: {
+            id: 0,
+            name: '',
+
+        }
     };
     showModal.value = false;
 };
@@ -215,7 +240,7 @@ const resetForm = () => ({
     id: 0,
     user_id: 0,
     nip: '',
-    spesialisasi: '',
+    subject_id: 0,
     telepon: '',
     user: {
         id: 0,

@@ -12,11 +12,12 @@ export interface Teacher {
   id?: number; // Changed to number based on the response
   user_id?: number; // Changed to number based on the response
   nip: string;
-  spesialisasi: string;
+  subject_id: number;
   telepon: string;
   created_at?: Date;
   updated_at?: Date;
-  user?: User; // Nested user object
+  user?: User; 
+  subject?: Subject
 }
 
 export interface Student {
@@ -44,4 +45,12 @@ export interface ActivityLog {
   description: string;
   timestamp: Date;
   // Add more activity log properties as needed
+}
+
+export interface Subject {
+  id?: number;
+  name?: string;
+  // code?: string;
+  created_at?: Date;
+  updated_at?: Date;
 }
