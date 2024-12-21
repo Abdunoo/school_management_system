@@ -16,7 +16,7 @@ export interface Teacher {
   telepon: string;
   created_at?: Date;
   updated_at?: Date;
-  user: User; // Nested user object
+  user?: User; // Nested user object
 }
 
 export interface Student {
@@ -35,7 +35,7 @@ export interface ClassItem {
   is_active: number;
   created_at?: Date;
   updated_at?: Date;
-  homeroom_teacher: Teacher; 
+  homeroom_teacher?: Teacher; 
 }
 
 export interface ActivityLog {

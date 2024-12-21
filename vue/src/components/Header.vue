@@ -11,7 +11,7 @@ defineProps<{
 </script>
 
 <template>
-  <header class="bg-white border-b px-4 sm:px-6 py-2 rounded-b-3xl">
+  <header class="bg-white border-b px-4 sm:px-6 py-4 rounded-b-3xl">
     <div class="flex items-center justify-between flex-wrap">
       <div class="flex items-center space-x-4">
         <Bars3BottomLeftIcon class="w-6 h-6 text-gray-600 cursor-pointer" @click="toggleSidebar" />

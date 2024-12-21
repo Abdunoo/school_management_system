@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col" style="max-height: 100vh;">
+    <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
         <!-- Table Controls -->
         <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
@@ -14,7 +14,7 @@
                             </option>
                         </select>
                     </div>
-                    <Button :variant="'primary'" @click="showAddTeacherModal = true">Tambah Guru</Button>
+                    <Button :variant="'primary'" @click="toggleModal('add')">Tambah Guru</Button>
                 </div>
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <Button :variant="'success'">Export</Button>
@@ -57,11 +57,11 @@
                         <td class="px-4 py-3 text-secondary">{{ teacher.user.username }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user.email }}</td>
                         <td class="px-4 py-3 text-secondary">
-                            <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">{{ teacher.user.is_active ?
-                                'Aktif' : 'Tidak Aktif' }}</Badge>
+                            <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">{{ teacher.user.is_active
+                                ? 'Aktif' : 'Tidak Aktif' }}</Badge>
                         </td>
                         <td class="px-4 py-3">
-                            <Button :variant="'warning'" @click="editTeacher(teacher)">Update</Button>
+                            <Button :variant="'warning'" @click="toggleModal('edit', teacher)">Update</Button>
                         </td>
                     </tr>
                 </tbody>
@@ -74,148 +74,59 @@
                 No teachers found.
             </div>
             <div v-for="teacher in teachers" :key="teacher.id"
-                class="p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-secondary">{{ teacher.nip }}</h3>
-                    <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">{{ teacher.user.is_active ? 'Aktif'
-                        : 'Tidak Aktif' }}</Badge>
+                class="relative p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
+                <!-- Status on Top Right -->
+                <div class="absolute top-4 right-4">
+                    <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">
+                        {{ teacher.user.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                    </Badge>
                 </div>
+
+                <!-- Content -->
+                <h3 class="text-lg font-bold text-secondary">{{ teacher.nip }}</h3>
                 <p class="text-sm text-secondary mt-2"><strong>Mapel:</strong> {{ teacher.spesialisasi }}</p>
                 <p class="text-sm text-secondary"><strong>Telepon:</strong> {{ teacher.telepon }}</p>
                 <p class="text-sm text-secondary"><strong>Username:</strong> {{ teacher.user.username }}</p>
                 <p class="text-sm text-secondary"><strong>Email:</strong> {{ teacher.user.email }}</p>
-                <div class="flex space-x-2 mt-4">
-                    <Button :variant="'warning'" @click="editTeacher(teacher)">Update</Button>
+
+                <!-- Button on Bottom Right -->
+                <div class="flex justify-end mt-4">
+                    <Button :variant="'warning'" @click="toggleModal('edit', teacher)">
+                        Update
+                    </Button>
                 </div>
             </div>
         </div>
 
-        <!-- Pagination -->
-        <div class="flex justify-center space-x-2 mt-4">
-            <Button :variant="'secondary'" @click="currentPage--" :disabled="currentPage === 1"
-                class="bg-gray-200 px-4 py-2 rounded">
-                Previous
-            </Button>
-            <Button v-for="page in totalPages" :key="page" @click="currentPage = page" :variant="'secondary'" :class="{
-                'bg-primary text-white': page === currentPage,
-                'bg-gray-200': page !== currentPage,
-            }" class="px-4 py-2 rounded">
-                {{ page }}
-            </Button>
-
-            <Button :variant="'secondary'" @click="currentPage++" :disabled="currentPage === totalPages"
-                class="bg-gray-200 px-4 py-2 rounded">
-                Next
-            </Button>
-        </div>
+        <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
         <!-- Add/Edit Teacher Modal -->
-        <TransitionRoot as="template" :show="showAddTeacherModal || showEditTeacherModal" @close="resetModal">
-            <Dialog class="relative z-30" @close="resetModal">
-                <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0"
-                    enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
-                    <div class="fixed inset-0 bg-gray-500/75 transition-opacity" />
-                </TransitionChild>
+        <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+            <form @submit.prevent="handleFormSubmit">
+                <FormField label="NIP" id="nip" v-model="form.nip" required />
+                <FormField label="Mapel" id="spesialisasi" v-model="form.spesialisasi" required />
+                <FormField label="Telepon" id="telepon" v-model="form.telepon" required />
+                <FormField label="Username" id="username" v-model="form.user.username" required />
+                <FormField label="Email" id="email" v-model="form.user.email" required />
+                <FormField label="Status" id="isActive" type="select" v-model="form.user.is_active"
+                    :options="statusOptions" />
+            </form>
+        </Modal>
 
-                <!-- Modal Content -->
-                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                        <TransitionChild as="template" enter="ease-out duration-300"
-                            enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200"
-                            leave-from="opacity-100 translate-y-0 sm:scale-100"
-                            leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-                            <DialogPanel
-                                class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                                <!-- Modal Header -->
-                                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                                    <div class="sm:flex sm:items-start">
-                                        <div
-                                            class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
-                                            <ExclamationTriangleIcon class="size-6 text-red-600" aria-hidden="true" />
-                                        </div>
-                                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                            <DialogTitle as="h3" class="text-base font-semibold text-gray-900">
-                                                {{ showEditTeacherModal ? 'Edit' : 'Add' }} Teacher
-                                            </DialogTitle>
-                                            <div class="mt-2">
-                                                <p class="text-sm text-gray-500">Please fill out the details for the
-                                                    teacher.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Modal Body -->
-                                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                                    <form @submit.prevent="showEditTeacherModal ? updateTeacher() : createTeacher()">
-                                        <div class="space-y-4">
-                                            <div>
-                                                <label for="nip"
-                                                    class="block text-sm font-medium text-gray-700">NIP</label>
-                                                <input v-model="form.nip" type="text" id="nip" required
-                                                    class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
-                                            </div>
-                                            <div>
-                                                <label for="spesialisasi"
-                                                    class="block text-sm font-medium text-gray-700">Mapel</label>
-                                                <input v-model="form.spesialisasi" type="text" id="spesialisasi"
-                                                    required
-                                                    class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
-                                            </div>
-                                            <div>
-                                                <label for="telepon"
-                                                    class="block text-sm font-medium text-gray-700">Telepon</label>
-                                                <input v-model="form.telepon" type="text" id="telepon" required
-                                                    class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
-                                            </div>
-                                            <div>
-                                                <label for="email"
-                                                    class="block text-sm font-medium text-gray-700">Email</label>
-                                                <input v-model="form.user.email" type="email" id="email" required
-                                                    class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
-                                            </div>
-                                            <div>
-                                                <label for="isActive"
-                                                    class="block text-sm font-medium text-gray-700">Status</label>
-                                                <select v-model="form.user.is_active" id="isActive"
-                                                    class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                                    <option :value="1">Aktif</option>
-                                                    <option :value="0">Tidak Aktif</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Modal Footer -->
-                                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                                    <Button
-                                        class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                                        @click="resetModal">Cancel</Button>
-                                    <Button
-                                        class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-                                        @click="showEditTeacherModal ? updateTeacher() : createTeacher()">
-                                        {{ showEditTeacherModal ? 'Update' : 'Add' }}
-                                    </Button>
-                                </div>
-                            </DialogPanel>
-                        </TransitionChild>
-                    </div>
-                </div>
-            </Dialog>
-        </TransitionRoot>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
 import Button from '@/components/common/Button.vue';
+import Badge from '@/components/common/Badge.vue';
+import Modal from '@/components/common/Modal.vue';
+import FormField from '@/components/common/FormField.vue';
 import { Teacher } from '@/types';
 import apiClient from '@/helpers/axios';
-import Badge from '@/components/common/Badge.vue';
-import { ExclamationTriangleIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
+import debounce from 'lodash.debounce';
+import Pagination from '@/components/common/Pagination.vue';
 
 const pageTitle = ref('Daftar Guru');
 const teachers = ref<Teacher[]>([]);
@@ -226,8 +137,8 @@ const searchQuery = ref('');
 const totalRecords = ref(0);
 const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value));
 
-const showAddTeacherModal = ref(false);
-const showEditTeacherModal = ref(false);
+const showModal = ref(false);
+const modalTitle = ref('');
 const form = ref<Teacher>({
     id: 0,
     user_id: 0,
@@ -238,17 +149,21 @@ const form = ref<Teacher>({
         id: 0,
         username: '',
         email: '',
-        role: 'teacher',
+        password: '',
         is_active: 1,
-        created_at: new Date(),
-        updated_at: new Date(),
     },
 });
+
+const statusOptions = [
+    { label: 'Aktif', value: 1 },
+    { label: 'Tidak Aktif', value: 0 },
+];
+
 const fetchTeachers = async () => {
     try {
         const response = await apiClient.get('/api/teachers', {
             params: {
-                per_page: perPage.value,
+                perPage: perPage.value,
                 page: currentPage.value,
                 search: searchQuery.value,
             },
@@ -256,39 +171,23 @@ const fetchTeachers = async () => {
         teachers.value = response.data;
         totalRecords.value = response.total;
     } catch (error) {
-        console.error('Failed to fetch teachers:', error);
+        console.error(error);
     }
 };
 
-const createTeacher = async () => {
-    try {
-        await apiClient.post('/api/teachers', form.value);
-        resetModal();
-        fetchTeachers();
-    } catch (error) {
-        console.error('Failed to create teacher:', error);
-    }
-};
+const debouncedFetchTeachers = debounce(() => {
+    fetchTeachers();
+}, 300);
 
-const editTeacher = (teacher: Teacher) => {
-    form.value = { ...teacher };
-    showEditTeacherModal.value = true;
-};
+onMounted(() => {
+    debouncedFetchTeachers();
+});
 
-const updateTeacher = async () => {
-    try {
-        await apiClient.put(`/api/teachers/${form.value.id}`, form.value);
-        resetModal();
-        fetchTeachers();
-    } catch (error) {
-        console.error('Failed to update teacher:', error);
-    }
-};
+watch([perPage, currentPage, searchQuery], () => {
+    debouncedFetchTeachers();
+});
 
 const resetModal = () => {
-    showAddTeacherModal.value = false;
-    showEditTeacherModal.value = false;
-    form.value = <Teacher>{};
     form.value = {
         id: 0,
         user_id: 0,
@@ -299,14 +198,44 @@ const resetModal = () => {
             id: 0,
             username: '',
             email: '',
-            role: 'teacher',
             is_active: 1,
-            created_at: new Date(),
-            updated_at: new Date(),
         },
     };
+    showModal.value = false;
 };
 
-onMounted(fetchTeachers);
-watch([searchQuery, perPage, currentPage], fetchTeachers);
+const toggleModal = (type: 'add' | 'edit', teacher?: Teacher) => {
+    console.log(type)
+    modalTitle.value = type === 'edit' ? 'Edit Teacher' : 'Add Teacher';
+    form.value = type === 'edit' ? { ...teacher } : resetForm();
+    showModal.value = true;
+};
+
+const resetForm = () => ({
+    id: 0,
+    user_id: 0,
+    nip: '',
+    spesialisasi: '',
+    telepon: '',
+    user: {
+        id: 0,
+        username: '',
+        email: '',
+        password: '',
+        is_active: 1,
+    },
+});
+
+const handleFormSubmit = async () => {
+    const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
+    const method = form.value.id ? 'put' : 'post';
+
+    try {
+        await apiClient[method](endpoint, form.value);
+        resetModal();
+        fetchTeachers();
+    } catch (error) {
+        console.error('Failed to submit form:', error);
+    }
+};
 </script>
