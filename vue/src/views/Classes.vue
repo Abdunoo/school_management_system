@@ -31,7 +31,7 @@
     <div class="rounded-xl border border-gray-300 bg-gray-50 max-h-full hidden lg:block">
       <table class="min-w-full table-auto text-sm text-left">
         <thead>
-          <tr class="bg-gray-100 grid grid-cols-5">
+          <tr class="bg-gray-100 grid grid-cols-5 rounded-xl">
             <th class="px-4 py-3 text-secondary">Nama Kelas</th>
             <th class="px-4 py-3 text-secondary">Tahun Akademik</th>
             <th class="px-4 py-3 text-secondary">Wali Kelas</th>
@@ -86,7 +86,7 @@
 
   <!-- Add/Edit Class Modal -->
 <TransitionRoot as="template" :show="showAddClassModal || showEditClassModal" @close="resetModal">
-    <Dialog class="relative z-10" @close="resetModal">
+    <Dialog class="relative z-30" @close="resetModal">
         <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100"
             leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
             <div class="fixed inset-0 bg-gray-500/75 transition-opacity" />
@@ -245,24 +245,20 @@ const editClass = (classItem: ClassItem) => {
 const updateClass = async () => {
   try {
     const response = await apiClient.put(`/api/classes/${form.value.id}`, form.value);
-    // Optionally, you can show a success message or update the classes list
-    await fetchClasses(); // Refresh the classes list after updating
-    resetModal(); // Close the modal after updating
+    await fetchClasses(); 
+    resetModal(); 
   } catch (error) {
     console.error('Failed to update class:', error);
-    // Optionally, show an error message to the user
   }
 };
 
 const createClass = async () => {
   try {
     const response = await apiClient.post('/api/classes', form.value);
-    // Optionally, you can show a success message or update the classes list
     await fetchClasses(); // Refresh the classes list after creating
     resetModal(); // Close the modal after creating
   } catch (error) {
     console.error('Failed to create class:', error);
-    // Optionally, show an error message to the user
   }
 };
 

@@ -31,7 +31,7 @@
         <div class="rounded-xl border border-gray-300 bg-gray-50 max-h-full hidden lg:block">
             <table class="min-w-full table-auto text-sm text-left">
                 <thead>
-                    <tr class="bg-gray-100 grid grid-cols-7">
+                    <tr class="bg-gray-100 grid grid-cols-7 rounded-xl">
                         <th class="px-4 py-3 text-secondary">NIP</th>
                         <th class="px-4 py-3 text-secondary">Mapel</th>
                         <th class="px-4 py-3 text-secondary">Telepon</th>
@@ -44,7 +44,7 @@
             </table>
         </div>
         <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
-            <table class="min-w-full table-auto text-sm text-left">
+            <table class="rounded-xl min-w-full table-auto text-sm text-left">
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="teachers.length === 0">
                         <td colspan="7" class="text-center py-4 text-secondary">No teachers found.</td>
@@ -111,7 +111,7 @@
 
         <!-- Add/Edit Teacher Modal -->
         <TransitionRoot as="template" :show="showAddTeacherModal || showEditTeacherModal" @close="resetModal">
-            <Dialog class="relative z-10" @close="resetModal">
+            <Dialog class="relative z-30" @close="resetModal">
                 <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0"
                     enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
                     <div class="fixed inset-0 bg-gray-500/75 transition-opacity" />
