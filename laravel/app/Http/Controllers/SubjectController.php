@@ -7,10 +7,19 @@ use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $subjects = Subject::all();
-        return response()->json($subjects);
+        $query = Subject::query();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $perPage = $request->input('per_page', 10);
+
+        $teachers = $query->paginate($perPage);
+
+        return response()->json($teachers);
     }
 
     public function store(Request $request)

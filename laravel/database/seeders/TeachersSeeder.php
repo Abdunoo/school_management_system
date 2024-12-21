@@ -27,17 +27,11 @@ class TeachersSeeder extends Seeder
             DB::table('teachers')->insert([
                 'user_id' => $userId,
                 'nip' => 'T' . str_pad($i, 3, '0', STR_PAD_LEFT),
-                'spesialisasi' => $this->getRandomSpecialization(),
+                'subject_id' => rand(1,3),
                 'telepon' => '081234567' . str_pad($i, 2, '0', STR_PAD_LEFT),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
         }
-    }
-
-    private function getRandomSpecialization()
-    {
-        $specializations = ['Matematika', 'Fisika', 'Kimia', 'Biologi', 'Sejarah', 'Geografi', 'Ekonomi', 'Bahasa Inggris', 'Bahasa Indonesia', 'Seni Musik'];
-        return $specializations[array_rand($specializations)];
     }
 }

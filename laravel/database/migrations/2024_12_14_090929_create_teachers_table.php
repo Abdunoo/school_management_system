@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->string('nip', 20)->unique();
-            $table->string('spesialisasi', 100);
+            $table->foreignId('subject_id')->constrained('subjects');
             $table->string('telepon', 20);
             $table->timestamps();
         });

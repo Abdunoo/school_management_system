@@ -9,25 +9,28 @@ class TeacherController extends Controller
 {
     public function index(Request $request)
     {
-        // Start building the query with the Teacher model and eager load the 'user' relationship
-        $query = Teacher::with('user');
+        $query = Teacher::with('user', 'subject');
 
-        // Check if the 'search' parameter is present in the request
         if ($request->filled('search')) {
-            $query->where('nip', 'like', '%' . $request->search . '%') // Search by 'nip'
-                ->orWhere('spesialisasi', 'like', '%' . $request->search . '%'); // Search by 'spesialisasi'
+            $search = $request->input('search');
+
+            $query->where('nip', 'like', '%' . $search . '%')
+            ->orWhere('telepon', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', function ($q) use ($search) {
+                      $q->where('username', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%');
+                  })
+                  ->orWhereHas('subject', function ($q) use ($search) {
+                      $q->where('name', 'like', '%' . $search . '%');
+                  });
         }
 
-        // Get the 'per_page' value from the request, default to 10 if not provided
         $perPage = $request->input('per_page', 10);
 
-        // Paginate the results with the specified number of items per page
         $teachers = $query->paginate($perPage);
 
-        // Return the paginated data as a JSON response
         return response()->json($teachers);
     }
-
 
     // public function export(Request $request)
     // {
@@ -48,10 +51,13 @@ class TeacherController extends Controller
 
     public function update(Request $request, $id)
     {
-        $teacher = Teacher::with('user')->findOrFail($id);
-        $teacher->update($request->only(['nip', 'spesialisasi', 'telepon'])); // Only update fields related to Teacher
+        $teacher = Teacher::with('user', 'subject')->findOrFail($id);
+        $teacher->update($request->only(['nip', 'telepon'])); // Only update fields related to Teacher
         if ($request->has('user')) {
             $teacher->user->update($request->input('user'));
+        }
+        if ($request->has('subject')) {
+            $teacher->subject->update($request->input('subject'));
         }
         return response()->json($teacher);
     }

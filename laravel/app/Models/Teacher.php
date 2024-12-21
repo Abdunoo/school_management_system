@@ -10,7 +10,7 @@ class Teacher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'nip', 'spesialisasi', 'telepon'];
+    protected $guarded = ['id'];
 
     public function user(): BelongsTo
     {
@@ -25,5 +25,10 @@ class Teacher extends Model
     public function class()
     {
         return $this->hasMany(Classes::class, 'homeroom_teacher_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
     }
 }
