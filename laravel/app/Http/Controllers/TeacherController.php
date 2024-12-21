@@ -48,8 +48,11 @@ class TeacherController extends Controller
 
     public function update(Request $request, $id)
     {
-        $teacher = Teacher::findOrFail($id);
-        $teacher->update($request->all());
+        $teacher = Teacher::with('user')->findOrFail($id);
+        $teacher->update($request->only(['nip', 'spesialisasi', 'telepon'])); // Only update fields related to Teacher
+        if ($request->has('user')) {
+            $teacher->user->update($request->input('user'));
+        }
         return response()->json($teacher);
     }
 
