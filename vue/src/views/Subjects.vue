@@ -126,9 +126,9 @@ import { useLoadingStore } from '@/stores/loadingStore';
       const { data } = await apiClient.get(API_ENDPOINTS.SUBJECTS, {
         params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
       });
-      console.log(data)
-      subjects.value = data;
-      totalRecords.value = data.length;
+      console.log(data.data)
+      subjects.value = data.data;
+      totalRecords.value = data.data.length;
     } catch (error) {
       console.error('Failed to fetch subjects:', error);
     }

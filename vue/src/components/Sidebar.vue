@@ -12,20 +12,19 @@ import {
   BookOpenIcon
 } from '@heroicons/vue/24/outline';
 import { onMounted, onUnmounted, ref } from 'vue';
-
 const menuItems = [
   { name: 'Dashboard', icon: HomeIcon, route: '/' },
-  { name: 'Teachers', icon: UserCircleIcon, route: '/teachers' },
-  { name: 'Students', icon: UserGroupIcon, route: '/students' },
-  { name: 'Classes', icon: AcademicCapIcon, route: '/classes' },
-  { name: 'Subject', icon: BookOpenIcon, route: '/subjects' },
-  { name: 'Schedule', icon: CalendarIcon, route: '/schedule' },
-  { name: 'Reports', icon: ClipboardDocumentListIcon, route: '/reports' }
+  { name: 'Guru', icon: UserCircleIcon, route: '/teachers' },
+  { name: 'Siswa', icon: UserGroupIcon, route: '/students' },
+  { name: 'Kelas', icon: AcademicCapIcon, route: '/classes' },
+  { name: 'Mata Pelajaran', icon: BookOpenIcon, route: '/subjects' },
+  { name: 'Jadwal', icon: CalendarIcon, route: '/schedule' },
+  { name: 'Laporan', icon: ClipboardDocumentListIcon, route: '/reports' }
 ];
 
 // New bottom menu items
 const bottomMenuItems = [
-  { name: 'Notifications', icon: BellIcon, route: '/notifications' },
+  { name: 'Notifikasi', icon: BellIcon, route: '/notifications' },
   { name: 'Admin', icon: AdminIcon, route: '/admin' }
 ];
 

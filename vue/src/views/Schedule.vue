@@ -66,7 +66,7 @@
             <td class="px-4 py-3 text-secondary">{{ schedule.class.name }}</td>
             <td class="px-4 py-3 text-secondary">{{ schedule.day }}</td>
             <td class="px-4 py-3 text-secondary">{{ schedule.subject.name }}</td>
-            <td class="px-4 py-3 text-secondary">{{ schedule.teacher.user.username }}</td>
+            <td class="px-4 py-3 text-secondary">{{ schedule.teacher.user?.username }}</td>
             <td class="px-4 py-3 text-secondary">{{ schedule.lesson_hours }}</td>
             <td class="px-4 py-3 text-secondary">{{ schedule.duration }}</td>
             <td class="px-4 py-3">
@@ -143,15 +143,10 @@ const form = ref<ClassScheduleItem>({
   day: '',
   lesson_hours: 0,
   duration: 0,
-  class: { id: 0, name: '' },
-  subject: { id: 0, name: '' },
-  teacher: { id: 0, name: '' },
+  class: {},
+  subject: {},
+  teacher: {},
 });
-
-const statusOptions = [
-  { label: 'Active', value: 1 },
-  { label: 'Inactive', value: 0 },
-];
 
 const classOptions = computed(() =>
   classes.value.map((classItem) => ({
@@ -169,7 +164,7 @@ const subjectOptions = computed(() =>
 
 const teacherOptions = computed(() =>
   teachers.value.map((teacher) => ({
-    label: teacher?.user.username,
+    label: teacher.user?.username,
     value: teacher.id,
   }))
 );
@@ -194,8 +189,8 @@ const fetchSchedules = async () => {
         search: searchQuery.value,
       },
     });
-    classSchedules.value = response.data;
-    totalRecords.value = response.total;
+    classSchedules.value = response.data.data;
+    totalRecords.value = response.data.total;
   } catch (error) {
     console.error('Failed to fetch class schedules:', error);
   }
@@ -204,17 +199,17 @@ const fetchSchedules = async () => {
 
 const fetchClasses = async () => {
   const response = await apiClient.get(API_ENDPOINTS.CLASSES);
-  classes.value = response.data;
+  classes.value = response.data.data;
 };
 
 const fetchTeachers = async () => {
   const response = await apiClient.get(API_ENDPOINTS.TEACHERS);
-  teachers.value = response.data;
+  teachers.value = response.data.data;
 };
 
 const fetchSubjects = async () => {
   const response = await apiClient.get(API_ENDPOINTS.SUBJECTS);
-  subjects.value = response.data;
+  subjects.value = response.data.data;
 };
 
 const toggleModal = (type: 'add' | 'edit', schedule?: ClassScheduleItem) => {
@@ -228,9 +223,9 @@ const toggleModal = (type: 'add' | 'edit', schedule?: ClassScheduleItem) => {
       day: '',
       lesson_hours: 0,
       duration: 0,
-      class: { id: 0, name: '' },
-      subject: { id: 0, name: '' },
-      teacher: { id: 0, name: '' },
+      class: {},
+      subject: {},
+      teacher: {},
     };
   } else if (type === 'edit' && schedule) {
     modalTitle.value = 'Edit Class Schedule';

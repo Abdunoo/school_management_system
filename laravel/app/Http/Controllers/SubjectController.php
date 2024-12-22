@@ -4,46 +4,86 @@ namespace App\Http\Controllers;
 
 use App\Models\Subject;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\Response;
 
 class SubjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Subject::query();
+        try {
+            $query = Subject::query();
 
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            if ($request->filled('search')) {
+                $query->where('name', 'like', '%' . $request->search . '%');
+            }
+
+            $perPage = $request->input('per_page', 10);
+            $subjects = $query->paginate($perPage);
+
+            return $this->json(Response::HTTP_OK, 'Subjects retrieved successfully', $subjects);
+        } catch (\Exception $e) {
+            return $this->json(Response::HTTP_INTERNAL_SERVER_ERROR, 'Failed to retrieve subjects', null, ['error' => $e->getMessage()]);
         }
-
-        $perPage = $request->input('per_page', 10);
-
-        $teachers = $query->paginate($perPage);
-
-        return response()->json($teachers);
     }
 
     public function store(Request $request)
     {
-        $subject = Subject::create($request->all());
-        return response()->json($subject, 201);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
+        }
+
+        try {
+            $subject = Subject::create($request->all());
+            return $this->json(201, 'Subject created successfully', $subject);
+        } catch (\Exception $e) {
+            return $this->json(500, 'Failed to create subject', null, ['error' => $e->getMessage()]);
+        }
     }
 
     public function show($id)
     {
-        $subject = Subject::findOrFail($id);
-        return response()->json($subject);
+        try {
+            $subject = Subject::findOrFail($id);
+            return $this->json(200, 'Subject retrieved successfully', $subject);
+        } catch (\Exception $e) {
+            return $this->json(500, 'Failed to retrieve subject', null, ['error' => $e->getMessage()]);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $subject = Subject::findOrFail($id);
-        $subject->update($request->all());
-        return response()->json($subject);
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
+        }
+
+        try {
+            $subject = Subject::findOrFail($id);
+            $subject->update($request->all());
+            return $this->json(200, 'Subject updated successfully', $subject);
+        } catch (\Exception $e) {
+            return $this->json(500, 'Failed to update subject', null, ['error' => $e->getMessage()]);
+        }
     }
 
     public function destroy($id)
     {
-        Subject::destroy($id);
-        return response()->json(null, 204);
+        try {
+            $subject = Subject::findOrFail($id);
+            $subject->delete();
+            return $this->json(200, 'Subject deleted successfully', null);
+        } catch (\Exception $e) {
+            return $this->json(500, 'Failed to delete subject', null, ['error' => $e->getMessage()]);
+        }
     }
 }

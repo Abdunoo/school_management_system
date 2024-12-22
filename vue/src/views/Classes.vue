@@ -120,7 +120,7 @@ import FormField from '@/components/common/FormField.vue';
 import Badge from '@/components/common/Badge.vue';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import apiClient from '@/helpers/axios';
-import { ClassItem } from '@/types';
+import { ClassItem, Teacher } from '@/types';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
 
@@ -148,7 +148,7 @@ const form = ref<ClassItem>({
   academic_year: '',
   homeroom_teacher_id: 0,
   is_active: 1,
-  homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: '', telepon: '' },
+  homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: 0, telepon: '' },
 });
 
 const statusOptions = [
@@ -156,8 +156,8 @@ const statusOptions = [
   { label: 'Inactive', value: 0 },
 ];
 const teacherOptions = computed(() =>
-  teachers.value.map((teacher) => ({
-    label: `${teacher.user.username} - ${teacher.nip}`,
+  teachers.value.map((teacher: Teacher) => ({
+    label: `${teacher.user?.username} - ${teacher.nip}`,
     value: teacher.id,
   }))
 );
@@ -168,8 +168,8 @@ const fetchClasses = debounce(async () => {
     const { data } = await apiClient.get(API_ENDPOINTS.CLASSES, {
       params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
     });
-    classes.value = data;
-    totalRecords.value = data.length;
+    classes.value = data.data;
+    totalRecords.value = data.data.length;
   } catch (error) {
     console.error('Failed to fetch classes:', error);
   }
@@ -180,7 +180,7 @@ const fetchTeachers = debounce(async () => {
   loadingStore.show();
   try {
     const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS);
-    teachers.value = data;
+    teachers.value = data.data;
   } catch (error) {
     console.error('Failed to fetch teachers:', error);
   }

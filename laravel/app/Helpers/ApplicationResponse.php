@@ -2,7 +2,6 @@
 
 namespace App\Helpers;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 trait ApplicationResponse
@@ -10,7 +9,7 @@ trait ApplicationResponse
     public function json($code = Response::HTTP_OK, $message = '', $data = null, $options = null)
     {
         if (!is_null($data)) {
-            if(!is_null($options)) {
+            if (!is_null($options)) {
                 return response()->json(
                     [
                         "code" => $code,

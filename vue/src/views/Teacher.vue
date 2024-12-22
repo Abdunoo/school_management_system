@@ -54,10 +54,10 @@
                         <td class="px-4 py-3 text-secondary">{{ teacher.nip }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.subject?.name }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.telepon }}</td>
-                        <td class="px-4 py-3 text-secondary">{{ teacher.user.username }}</td>
-                        <td class="px-4 py-3 text-secondary">{{ teacher.user.email }}</td>
+                        <td class="px-4 py-3 text-secondary">{{ teacher.user?.username }}</td>
+                        <td class="px-4 py-3 text-secondary">{{ teacher.user?.email }}</td>
                         <td class="px-4 py-3 text-secondary">
-                            <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">{{ teacher.user.is_active
+                            <Badge :variant="teacher.user?.is_active ? 'success' : 'danger'">{{ teacher.user?.is_active
                                 ? 'Aktif' : 'Tidak Aktif' }}</Badge>
                         </td>
                         <td class="px-4 py-3">
@@ -77,8 +77,8 @@
                 class="relative p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
                 <!-- Status on Top Right -->
                 <div class="absolute top-4 right-4">
-                    <Badge :variant="teacher.user.is_active ? 'success' : 'danger'">
-                        {{ teacher.user.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                    <Badge :variant="teacher.user?.is_active ? 'success' : 'danger'">
+                        {{ teacher.user?.is_active ? 'Aktif' : 'Tidak Aktif' }}
                     </Badge>
                 </div>
 
@@ -86,8 +86,8 @@
                 <h3 class="text-lg font-bold text-secondary">{{ teacher.nip }}</h3>
                 <p class="text-sm text-secondary mt-2"><strong>Mapel:</strong> {{ teacher.subject?.name }}</p>
                 <p class="text-sm text-secondary"><strong>Telepon:</strong> {{ teacher.telepon }}</p>
-                <p class="text-sm text-secondary"><strong>Username:</strong> {{ teacher.user.username }}</p>
-                <p class="text-sm text-secondary"><strong>Email:</strong> {{ teacher.user.email }}</p>
+                <p class="text-sm text-secondary"><strong>Username:</strong> {{ teacher.user?.username }}</p>
+                <p class="text-sm text-secondary"><strong>Email:</strong> {{ teacher.user?.email }}</p>
 
                 <!-- Button on Bottom Right -->
                 <div class="flex justify-end mt-4">
@@ -173,8 +173,8 @@ const fetchTeachers = debounce(async () => {
                 search: searchQuery.value,
             },
         });
-        teachers.value = response.data;
-        totalRecords.value = response.total;
+        teachers.value = response.data.data;
+        totalRecords.value = response.data.total;
     } catch (error) {
         console.error(error);
     }
@@ -185,7 +185,7 @@ const fetchMapel = debounce(async () => {
     loadingStore.show();
     try {
         const response = await apiClient.get('/api/subjects');
-        subjects.value = response.data;
+        subjects.value = response.data.data;
     } catch (error) {
         console.error(error);
     }
@@ -196,7 +196,7 @@ const fetchUser = debounce(async () => {
     loadingStore.show();
     try {
         const response = await apiClient.get('/api/users');
-        users.value = response.data;
+        users.value = response.data.data;
     } catch (error) {
         console.error(error);
     }

@@ -1,19 +1,19 @@
 export interface User {
-  id: number;
-  username: string; // Added username property
-  email: string;
-  role: 'admin' | 'teacher' | 'student';
-  is_active: number; // Added is_active property
-  created_at: Date | String; // Added created_at property
-  updated_at: Date | String; // Added updated_at property
+  id?: number;
+  username?: string; // Added username property
+  email?: string;
+  role?: 'admin' | 'teacher' | 'student';
+  is_active?: number; // Added is_active property
+  created_at?: Date | String; // Added created_at property
+  updated_at?: Date | String; // Added updated_at property
 }
 
 export interface Teacher {
   id?: number; // Changed to number based on the response
   user_id?: number; // Changed to number based on the response
-  nip: string;
-  subject_id: number;
-  telepon: string;
+  nip?: string;
+  subject_id?: number;
+  telepon?: string;
   created_at?: Date | String;
   updated_at?: Date | String;
   user?: User; 
@@ -31,9 +31,9 @@ export interface Student {
 export interface ClassItem {
   id?: number;
   name?: string;
-  academic_year: string;
+  academic_year?: string;
   homeroom_teacher_id?: number;
-  is_active: number;
+  is_active?: number;
   created_at?: Date | String;
   updated_at?: Date | String;
   homeroom_teacher?: Teacher; 
