@@ -55,7 +55,17 @@ defineProps<{
   <aside class="w-52 lg:w-64 bg-white border-r rounded-r-3xl">
     <!-- Logo -->
     <div class="p-4 border-b flex items-center justify-between">
-      <h1 class="text-xl font-bold text-gray-800">Logo</h1>
+      <img 
+        src="../assets/sms.webp" 
+        alt="High-Resolution Logo" 
+        class="
+          w-10 h-10 
+          lg:w-12 lg:h-12 
+          rounded-full 
+          object-cover 
+          border-2 border-primary 
+        "
+        >
       <XMarkIcon class="w-5 h-5 lg:hidden" @click="toggleSidebar" />
     </div>
 
