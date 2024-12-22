@@ -80,8 +80,9 @@
             <td class="px-4 py-3 text-secondary">{{ classItem.homeroom_teacher?.user?.username }} - {{
               classItem?.homeroom_teacher?.nip }}</td>
             <td class="px-4 py-3 text-secondary">
-              <Badge :variant="classItem.is_active ? 'success' : 'danger'">{{ classItem.is_active ? 'Aktif' : 'Tidak
-                Aktif' }}</Badge>
+              <Badge :variant="classItem.is_active ? 'success' : 'danger'">
+                {{ classItem.is_active ? 'Aktif' : 'Tidak Aktif' }}
+              </Badge>
             </td>
             <td class="px-4 py-3">
               <Button :variant="'warning'" @click="toggleModal('edit', classItem)">Update</Button>
@@ -101,7 +102,6 @@
         <FormField placeholder="Class Name" label="Class Name" id="name" v-model="form.name" required />
         <FormField placeholder="Academic Year" label="Academic Year" id="academic_year" type="select"
           v-model="form.academic_year" :options="academicYearOptions" required />
-
         <FormField placeholder="Homeroom Teacher" label="Homeroom Teacher" id="homeroom_teacher_id" type="select"
           v-model="form.homeroom_teacher_id" :options="teacherOptions" required />
         <FormField placeholder="Tidak Aktif" label="Status" id="isActive" type="select" v-model="form.is_active"

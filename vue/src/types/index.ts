@@ -54,3 +54,16 @@ export interface Subject {
   created_at?: Date | String;
   updated_at?: Date | String;
 }
+
+export interface ClassScheduleItem {
+  id?: number;
+  class_id : number;
+  subject_id : number;
+  teacher_id : number;
+  day : string;
+  lesson_hours : number;
+  duration : number;
+  class: ClassItem;
+  subject: Subject;
+  teacher: Teacher;
+}
