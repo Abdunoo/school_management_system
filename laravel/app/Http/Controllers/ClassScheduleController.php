@@ -9,7 +9,7 @@ class ClassScheduleController extends Controller
 {
     public function index()
     {
-        $schedules = ClassSchedule::with(['class', 'subject', 'teacher'])->get();
+        $schedules = ClassSchedule::with(['class', 'subject', 'teacher.user'])->paginate(100);
         return response()->json($schedules);
     }
 
