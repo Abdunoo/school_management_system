@@ -4,8 +4,8 @@ export interface User {
   email: string;
   role: 'admin' | 'teacher' | 'student';
   is_active: number; // Added is_active property
-  created_at: Date; // Added created_at property
-  updated_at: Date; // Added updated_at property
+  created_at: Date | String; // Added created_at property
+  updated_at: Date | String; // Added updated_at property
 }
 
 export interface Teacher {
@@ -14,8 +14,8 @@ export interface Teacher {
   nip: string;
   subject_id: number;
   telepon: string;
-  created_at?: Date;
-  updated_at?: Date;
+  created_at?: Date | String;
+  updated_at?: Date | String;
   user?: User; 
   subject?: Subject
 }
@@ -34,8 +34,8 @@ export interface ClassItem {
   academic_year: string;
   homeroom_teacher_id?: number;
   is_active: number;
-  created_at?: Date;
-  updated_at?: Date;
+  created_at?: Date | String;
+  updated_at?: Date | String;
   homeroom_teacher?: Teacher; 
 }
 
@@ -43,7 +43,7 @@ export interface ActivityLog {
   id: number;
   type: string;
   description: string;
-  timestamp: Date;
+  timestamp: Date | String;
   // Add more activity log properties as needed
 }
 
@@ -51,6 +51,6 @@ export interface Subject {
   id?: number;
   name?: string;
   // code?: string;
-  created_at?: Date;
-  updated_at?: Date;
+  created_at?: Date | String;
+  updated_at?: Date | String;
 }

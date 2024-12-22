@@ -78,7 +78,7 @@
       <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
   
       <!-- Add/Edit Subject Modal -->
-      <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+      <Modal :visible="showModal" :title="modalTitle"  :confirmButtonText="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
         <form @submit.prevent>
           <FormField label="Subject Name" id="name" v-model="form.name" required />
         </form>
@@ -97,10 +97,13 @@
   import apiClient from '@/helpers/axios';
   import { Subject } from '@/types';
   import debounce from 'lodash.debounce';
+import { useLoadingStore } from '@/stores/loadingStore';
   
   const API_ENDPOINTS = {
     SUBJECTS: '/api/subjects',
   };
+
+  const loadingStore = useLoadingStore();
   
   const pageTitle = ref('Daftar Mata Pelajaran');
   const subjects = ref<Subject[]>([]);
@@ -115,9 +118,10 @@
   const form = ref<Subject>({
     id: 0,
     name: '',
-    created_at: '',
   });
-  const fetchSubjects = async () => {
+  
+  const fetchSubjects = debounce(async () => {
+    loadingStore.show();
     try {
       const { data } = await apiClient.get(API_ENDPOINTS.SUBJECTS, {
         params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
@@ -128,7 +132,8 @@
     } catch (error) {
       console.error('Failed to fetch subjects:', error);
     }
-  };
+    loadingStore.hide();
+  },300);
   
   const toggleModal = (type: 'add' | 'edit', subject?: Subject) => {
     modalTitle.value = type === 'add' ? 'Add Subject' : 'Edit Subject';
@@ -139,7 +144,6 @@
   const resetForm = () => ({
     id: 0,
     name: '',
-    created_at: '',
   });
   
   const resetModal = () => {
@@ -148,27 +152,24 @@
   };
   
   const handleFormSubmit = async () => {
+    loadingStore.show();
     const endpoint = form.value.id ? `${API_ENDPOINTS.SUBJECTS}/${form.value.id}` : API_ENDPOINTS.SUBJECTS;
     const method = form.value.id ? 'put' : 'post';
     try {
       await apiClient[method](endpoint, form.value);
-      fetchSubjects();
+      await fetchSubjects();
       resetModal();
     } catch (error) {
       console.error('Failed to submit form:', error);
     }
   };
   
-  const debouncedfetchSubjects = debounce(() => {
-    fetchSubjects();
-  }, 300);
-  
-  onMounted(() => {
-    debouncedfetchSubjects();
+  onMounted(async() => {
+    await fetchSubjects();
   });
   
-  watch([perPage, currentPage, searchQuery], () => {
-    debouncedfetchSubjects();
+  watch([perPage, currentPage, searchQuery], async() => {
+    await fetchSubjects();
   });
   </script>
   

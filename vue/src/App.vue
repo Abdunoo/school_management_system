@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import Sidebar from './components/Sidebar.vue';
-import Header from './components/Header.vue';
+import Sidebar from '@/components/Sidebar.vue';
+import Header from '@/components/Header.vue';
+import LoadingIndicator from '@/components/LoadingIndicator.vue';
 
 const isSidebarVisible = ref(false);
 
@@ -33,29 +34,21 @@ onUnmounted(() => {
     <div class="h-full flex overflow-hidden relative">
       <!-- Sidebar dengan Transisi -->
       <transition name="slide" appear>
-        <Sidebar
-          v-show="isSidebarVisible"
-          :toggleSidebar="toggleSidebar"
-          class="w-64 h-full inset-y-0 transform z-20 bg-white"
-          :class=" !isMobile ? 'absolute' : 'fixed'"
-        />
+        <Sidebar v-show="isSidebarVisible" :toggleSidebar="toggleSidebar"
+          class="w-64 h-full inset-y-0 transform z-20 bg-white" :class="!isMobile ? 'absolute' : 'fixed'" />
       </transition>
 
       <!-- Overlay -->
-      <div
-        v-if="isSidebarVisible && isMobile"
-        class="fixed inset-0 bg-black bg-opacity-50 z-10"
-        @click="toggleSidebar"
-      ></div>
+      <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-10" @click="toggleSidebar">
+      </div>
 
       <!-- Konten Utama -->
-      <main
-        :class="isSidebarVisible && !isMobile ? 'ml-72' : 'ml-0'"
-        class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 rounded-3xl transition-all duration-300 ease-in-out"
-      >
+      <main :class="isSidebarVisible && !isMobile ? 'ml-72' : 'ml-0'"
+        class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 rounded-3xl transition-all duration-300 ease-in-out">
         <router-view />
       </main>
     </div>
+    <LoadingIndicator />
   </div>
 </template>
 

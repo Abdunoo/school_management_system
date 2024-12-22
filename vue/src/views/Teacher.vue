@@ -101,19 +101,17 @@
         <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
         <!-- Add/Edit Teacher Modal -->
-        <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+        <Modal :visible="showModal" :title="modalTitle" :confirmButtonText="modalTitle" @close="resetModal"
+            @confirm="handleFormSubmit">
             <form @submit.prevent="handleFormSubmit">
                 <FormField label="NIP" id="nip" v-model="form.nip" required />
-                <FormField id="mapel" label="Mapel" type="select" :options="subjectOption"
-                    placeholder="Bahasa Indonesia" v-model="form.subject.name" v-if="subjectOption.length > 0" />
+                <FormField id="mapel" label="Mapel" type="select" :options="subjectOption" v-model="form.subject_id"
+                    placeholder="Pilih Mapel" />
                 <FormField label="Telepon" id="telepon" v-model="form.telepon" required />
-                <FormField label="Username" id="username" v-model="form.user.username" required />
-                <FormField label="Email" id="email" v-model="form.user.email" required />
-                <FormField label="Status" id="isActive" type="select" v-model="form.user.is_active"
-                    :options="statusOptions" />
+                <FormField id="user" label="User" type="select" :options="usertOption" v-model="form.user_id"
+                    placeholder="Pilih Mapel" />
             </form>
         </Modal>
-
     </div>
 </template>
 
@@ -128,10 +126,15 @@ import apiClient from '@/helpers/axios';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import debounce from 'lodash.debounce';
 import Pagination from '@/components/common/Pagination.vue';
+import { useLoadingStore } from '@/stores/loadingStore';
+import { User } from '../types/index';
+
+const loadingStore = useLoadingStore();
 
 const pageTitle = ref('Daftar Guru');
 const teachers = ref<Teacher[]>([]);
 const subjects = ref<Subject[]>([]);
+const users = ref<(User[])>([]);
 const perPageOptions = [10, 20, 30];
 const perPage = ref(perPageOptions[0]);
 const currentPage = ref(1);
@@ -145,23 +148,23 @@ const form = ref<Teacher>({
     id: 0,
     user_id: 0,
     nip: '',
-    subject_id: '',
+    subject_id: 0,
     telepon: '',
     user: {
         id: 0,
         username: '',
         email: '',
-        password: '',
         is_active: 1,
     },
+    subject: {
+        id: 0,
+        name: '',
+    }
 });
 
-const statusOptions = [
-    { label: 'Aktif', value: 1 },
-    { label: 'Tidak Aktif', value: 0 },
-];
 
-const fetchTeachers = async () => {
+const fetchTeachers = debounce(async () => {
+    loadingStore.show();
     try {
         const response = await apiClient.get('/api/teachers', {
             params: {
@@ -175,36 +178,53 @@ const fetchTeachers = async () => {
     } catch (error) {
         console.error(error);
     }
-};
+    loadingStore.hide();
+}, 300);
 
-const fetchMapel = async () => {
+const fetchMapel = debounce(async () => {
+    loadingStore.show();
     try {
         const response = await apiClient.get('/api/subjects');
         subjects.value = response.data;
-        console.log(subjectOption.value)
     } catch (error) {
         console.error(error);
     }
-};
+    loadingStore.hide();
+}, 300);
+
+const fetchUser = debounce(async () => {
+    loadingStore.show();
+    try {
+        const response = await apiClient.get('/api/users');
+        users.value = response.data;
+    } catch (error) {
+        console.error(error);
+    }
+    loadingStore.hide();
+}, 300);
 
 const subjectOption = computed(() =>
     subjects.value.map((subject) => ({
-        label: `${subject.name}`,
+        label: subject.name,
         value: subject.id,
     }))
 );
 
-const debouncedFetchTeachers = debounce(() => {
-    fetchTeachers();
-}, 300);
+const usertOption = computed(() =>
+    users.value.map((user) => ({
+        label: user.username,
+        value: user.id,
+    }))
+);
 
 onMounted(() => {
-    debouncedFetchTeachers();
+    fetchTeachers();
     fetchMapel();
+    fetchUser();
 });
 
 watch([perPage, currentPage, searchQuery], () => {
-    debouncedFetchTeachers();
+    fetchTeachers();
 });
 
 const resetModal = () => {
@@ -223,14 +243,12 @@ const resetModal = () => {
         subject: {
             id: 0,
             name: '',
-
         }
     };
     showModal.value = false;
 };
 
 const toggleModal = (type: 'add' | 'edit', teacher?: Teacher) => {
-    console.log(type)
     modalTitle.value = type === 'edit' ? 'Edit Teacher' : 'Add Teacher';
     form.value = type === 'edit' ? { ...teacher } : resetForm();
     showModal.value = true;
@@ -249,9 +267,15 @@ const resetForm = () => ({
         password: '',
         is_active: 1,
     },
+    subject: {
+        id: 0,
+        name: '',
+    }
 });
 
-const handleFormSubmit = async () => {
+const handleFormSubmit = debounce(async () => {
+    console.log(form.value);
+    loadingStore.show();
     const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
     const method = form.value.id ? 'put' : 'post';
 
@@ -262,5 +286,6 @@ const handleFormSubmit = async () => {
     } catch (error) {
         console.error('Failed to submit form:', error);
     }
-};
+    loadingStore.hide();
+}, 300);
 </script>

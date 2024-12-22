@@ -80,7 +80,8 @@
             <td class="px-4 py-3 text-secondary">{{ classItem.homeroom_teacher?.user?.username }} - {{
               classItem?.homeroom_teacher?.nip }}</td>
             <td class="px-4 py-3 text-secondary">
-              <Badge :variant="classItem.is_active ? 'success' : 'danger'">{{ classItem.is_active ? 'Aktif' : 'Tidak Aktif' }}</Badge>
+              <Badge :variant="classItem.is_active ? 'success' : 'danger'">{{ classItem.is_active ? 'Aktif' : 'Tidak
+                Aktif' }}</Badge>
             </td>
             <td class="px-4 py-3">
               <Button :variant="'warning'" @click="toggleModal('edit', classItem)">Update</Button>
@@ -94,13 +95,17 @@
     <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
     <!-- Add/Edit Class Modal -->
-    <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+    <Modal :visible="showModal" :title="modalTitle" :confirmButtonText="modalTitle" @close="resetModal"
+      @confirm="handleFormSubmit">
       <form @submit.prevent>
-        <FormField label="Class Name" id="name" v-model="form.name" required />
-        <FormField label="Academic Year" id="academic_year" v-model="form.academic_year" required />
-        <FormField label="Homeroom Teacher" id="homeroom_teacher_id" type="select" v-model="form.homeroom_teacher_id"
-          :options="teacherOptions" required />
-        <FormField label="Status" id="isActive" type="select" v-model="form.is_active" :options="statusOptions" />
+        <FormField placeholder="Class Name" label="Class Name" id="name" v-model="form.name" required />
+        <FormField placeholder="Academic Year" label="Academic Year" id="academic_year" type="select"
+          v-model="form.academic_year" :options="academicYearOptions" required />
+
+        <FormField placeholder="Homeroom Teacher" label="Homeroom Teacher" id="homeroom_teacher_id" type="select"
+          v-model="form.homeroom_teacher_id" :options="teacherOptions" required />
+        <FormField placeholder="Tidak Aktif" label="Status" id="isActive" type="select" v-model="form.is_active"
+          :options="statusOptions" />
       </form>
     </Modal>
   </div>
@@ -117,11 +122,14 @@ import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import apiClient from '@/helpers/axios';
 import { ClassItem } from '@/types';
 import debounce from 'lodash.debounce';
+import { useLoadingStore } from '@/stores/loadingStore';
 
 const API_ENDPOINTS = {
   CLASSES: '/api/classes',
   TEACHERS: '/api/teachers',
 };
+
+const loadingStore = useLoadingStore();
 
 const pageTitle = ref('Daftar Kelas');
 const classes = ref<ClassItem[]>([]);
@@ -142,6 +150,7 @@ const form = ref<ClassItem>({
   is_active: 1,
   homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: '', telepon: '' },
 });
+
 const statusOptions = [
   { label: 'Active', value: 1 },
   { label: 'Inactive', value: 0 },
@@ -153,7 +162,8 @@ const teacherOptions = computed(() =>
   }))
 );
 
-const fetchClasses = async () => {
+const fetchClasses = debounce(async () => {
+  loadingStore.show();
   try {
     const { data } = await apiClient.get(API_ENDPOINTS.CLASSES, {
       params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
@@ -163,16 +173,37 @@ const fetchClasses = async () => {
   } catch (error) {
     console.error('Failed to fetch classes:', error);
   }
-};
+  loadingStore.hide();
+}, 300);
 
-const fetchTeachers = async () => {
+const fetchTeachers = debounce(async () => {
+  loadingStore.show();
   try {
     const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS);
     teachers.value = data;
   } catch (error) {
     console.error('Failed to fetch teachers:', error);
   }
-};
+  loadingStore.hide();
+}, 300);
+
+interface AcademicYearOption {
+  label: string;
+  value: string;
+}
+
+const currentYear: number = new Date().getFullYear();
+
+const academicYearOptions = ref<AcademicYearOption[]>([]);
+
+for (let i = -100; i <= 100; i++) {
+  const year: number = currentYear + i;
+  const next: number = year + 1;
+  academicYearOptions.value.push({
+    label: `${year}/${next}`,
+    value: `${year}/${next}`
+  });
+}
 
 const toggleModal = (type: 'add' | 'edit', classItem?: ClassItem) => {
   modalTitle.value = type === 'add' ? 'Add Class' : 'Edit Class';
@@ -194,8 +225,8 @@ const resetModal = () => {
   form.value = resetForm();
 };
 
-const handleFormSubmit = async () => {
-  console.log(form.value)
+const handleFormSubmit = debounce(async () => {
+  loadingStore.show();
   const endpoint = form.value.id ? `${API_ENDPOINTS.CLASSES}/${form.value.id}` : API_ENDPOINTS.CLASSES;
   const method = form.value.id ? 'put' : 'post';
   try {
@@ -205,19 +236,16 @@ const handleFormSubmit = async () => {
   } catch (error) {
     console.error('Failed to submit form:', error);
   }
-};
-
-const debouncedfetchClasses = debounce(() => {
-  fetchClasses();
-  fetchTeachers()
+  loadingStore.hide();
 }, 300);
 
 onMounted(() => {
-  debouncedfetchClasses();
-  // fetchClasses();
+  fetchClasses();
+  fetchTeachers()
 });
 
 watch([perPage, currentPage, searchQuery], () => {
-  debouncedfetchClasses();
+  fetchClasses();
+  fetchTeachers()
 });
 </script>
