@@ -18,6 +18,9 @@ const updateIsMobile = () => {
 
 onMounted(() => {
   window.addEventListener('resize', updateIsMobile);
+  if (!isMobile.value) {
+    isSidebarVisible.value = true;
+  }
 });
 
 onUnmounted(() => {
@@ -27,22 +30,17 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col h-screen bg-gray-100">
-    <!-- Header -->
     <Header class="mb-8" :toggleSidebar="toggleSidebar" />
 
-    <!-- Wrapper Konten -->
     <div class="h-full flex overflow-hidden relative">
-      <!-- Sidebar dengan Transisi -->
       <transition name="slide" appear>
         <Sidebar v-show="isSidebarVisible" :toggleSidebar="toggleSidebar"
           class="w-64 h-full inset-y-0 transform z-20 bg-white" :class="!isMobile ? 'absolute' : 'fixed'" />
       </transition>
 
-      <!-- Overlay -->
       <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-10" @click="toggleSidebar">
       </div>
 
-      <!-- Konten Utama -->
       <main :class="isSidebarVisible && !isMobile ? 'ml-72' : 'ml-0'"
         class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 rounded-3xl transition-all duration-300 ease-in-out">
         <router-view />
