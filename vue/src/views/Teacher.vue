@@ -101,15 +101,17 @@
         <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
         <!-- Add/Edit Teacher Modal -->
-        <Modal :visible="showModal" :title="modalTitle" :confirmButtonText="modalTitle" @close="resetModal"
-            @confirm="handleFormSubmit">
+        <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
             <form @submit.prevent="handleFormSubmit">
                 <FormField label="NIP" id="nip" v-model="form.nip" required />
                 <FormField id="mapel" label="Mapel" type="select" :options="subjectOption" v-model="form.subject_id"
-                    placeholder="Pilih Mapel" />
+                placeholder="Pilih Mapel" />
                 <FormField label="Telepon" id="telepon" v-model="form.telepon" required />
                 <FormField id="user" label="User" type="select" :options="usertOption" v-model="form.user_id"
-                    placeholder="Pilih Mapel" />
+                placeholder="Pilih Mapel" />
+                <div v-if="formErrors.length" class="mt-4 text-red-500">
+                {{ formErrors.join(', ') }}
+                </div>
             </form>
         </Modal>
     </div>
@@ -128,8 +130,10 @@ import debounce from 'lodash.debounce';
 import Pagination from '@/components/common/Pagination.vue';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { User } from '../types/index';
+import { useModalStore } from '../stores/modalStore';
 
 const loadingStore = useLoadingStore();
+const modalStore = useModalStore();
 
 const pageTitle = ref('Daftar Guru');
 const teachers = ref<Teacher[]>([]);
@@ -144,6 +148,7 @@ const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value))
 
 const showModal = ref(false);
 const modalTitle = ref('');
+const formErrors = ref<string[]>([]);
 const form = ref<Teacher>({
     id: 0,
     user_id: 0,
@@ -175,8 +180,9 @@ const fetchTeachers = debounce(async () => {
         });
         teachers.value = response.data.data;
         totalRecords.value = response.data.total;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
+        modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
 }, 300);
@@ -186,8 +192,9 @@ const fetchMapel = debounce(async () => {
     try {
         const response = await apiClient.get('/api/subjects');
         subjects.value = response.data.data;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
+        modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
 }, 300);
@@ -197,8 +204,9 @@ const fetchUser = debounce(async () => {
     try {
         const response = await apiClient.get('/api/users');
         users.value = response.data.data;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
+        modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
 }, 300);
@@ -273,19 +281,29 @@ const resetForm = () => ({
     }
 });
 
-const handleFormSubmit = debounce(async () => {
-    console.log(form.value);
-    loadingStore.show();
-    const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
-    const method = form.value.id ? 'put' : 'post';
+const handleFormSubmit = async () => {
+  formErrors.value = [];
+  if (!form.value.nip) formErrors.value.push('NIP harus diisi');
+  if (!form.value.subject_id) formErrors.value.push('Mapel harus diisi');
+  if (!form.value.telepon) formErrors.value.push('Telepon harus diisi');
+  if (!form.value.user_id) formErrors.value.push('User harus diisi');
 
-    try {
-        await apiClient[method](endpoint, form.value);
-        resetModal();
-        fetchTeachers();
-    } catch (error) {
-        console.error('Failed to submit form:', error);
-    }
-    loadingStore.hide();
-}, 300);
+  if (formErrors.value.length > 0) {
+    return;
+  }
+
+  loadingStore.show();
+  const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
+  const method = form.value.id ? 'put' : 'post';
+
+  try {
+    await apiClient[method](endpoint, form.value);
+    resetModal();
+    fetchTeachers();
+  } catch (error: any) {
+    console.error('Failed to submit form:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+};
 </script>

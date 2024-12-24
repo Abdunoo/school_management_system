@@ -78,7 +78,7 @@
       <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
   
       <!-- Add/Edit Subject Modal -->
-      <Modal :visible="showModal" :title="modalTitle"  :confirmButtonText="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+      <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
         <form @submit.prevent>
           <FormField label="Subject Name" id="name" v-model="form.name" required />
         </form>
@@ -98,12 +98,14 @@
   import { Subject } from '@/types';
   import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
+import { useModalStore } from '../stores/modalStore';
   
   const API_ENDPOINTS = {
     SUBJECTS: '/api/subjects',
   };
 
   const loadingStore = useLoadingStore();
+const modalStore = useModalStore();
   
   const pageTitle = ref('Daftar Mata Pelajaran');
   const subjects = ref<Subject[]>([]);
@@ -129,8 +131,9 @@ import { useLoadingStore } from '@/stores/loadingStore';
       console.log(data.data)
       subjects.value = data.data;
       totalRecords.value = data.data.length;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch subjects:', error);
+      modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
   },300);
@@ -159,8 +162,9 @@ import { useLoadingStore } from '@/stores/loadingStore';
       await apiClient[method](endpoint, form.value);
       await fetchSubjects();
       resetModal();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit form:', error);
+      modalStore.showError('Error', error.response.data.message);
     }
   };
   

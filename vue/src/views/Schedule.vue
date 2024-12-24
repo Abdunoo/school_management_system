@@ -81,7 +81,7 @@
     <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
     <!-- Add/Edit Schedule Modal -->
-    <Modal :visible="showModal" :title="modalTitle" :confirmButtonText="modalTitle" @close="resetModal"
+    <Modal :visible="showModal" :title="modalTitle" @close="resetModal"
       @confirm="handleFormSubmit">
       <form @submit.prevent>
         <FormField placeholder="Class" label="Class" id="class_id" type="select" v-model="form.class_id"
@@ -112,6 +112,7 @@ import apiClient from '@/helpers/axios';
 import { ClassScheduleItem, ClassItem, Subject, Teacher } from '@/types';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
+import { useModalStore } from '../stores/modalStore';
 
 const API_ENDPOINTS = {
   CLASS_SCHEDULES: '/api/class-schedules',
@@ -121,6 +122,7 @@ const API_ENDPOINTS = {
 };
 
 const loadingStore = useLoadingStore();
+const modalStore = useModalStore();
 
 const pageTitle = ref('Jadwal Pembelajaran');
 const classSchedules = ref<ClassScheduleItem[]>([]);
@@ -191,8 +193,9 @@ const fetchSchedules = async () => {
     });
     classSchedules.value = response.data.data;
     totalRecords.value = response.data.total;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch class schedules:', error);
+    modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
 };

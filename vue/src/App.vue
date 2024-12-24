@@ -3,6 +3,8 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import Sidebar from '@/components/Sidebar.vue';
 import Header from '@/components/Header.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
+import Modal from './components/common/Modal.vue';
+import { useModalStore } from './stores/modalStore';
 
 const isSidebarVisible = ref(false);
 
@@ -15,6 +17,8 @@ const isMobile = ref(window.innerWidth <= 1024);
 const updateIsMobile = () => {
   isMobile.value = window.innerWidth <= 1024;
 };
+
+const modalStore = useModalStore();
 
 onMounted(() => {
   window.addEventListener('resize', updateIsMobile);
@@ -47,6 +51,15 @@ onUnmounted(() => {
       </main>
     </div>
     <LoadingIndicator />
+    <Modal
+      :visible="modalStore.showErrorModal"
+      :title="modalStore.errorTitle"
+      :description="modalStore.errorDescription"
+      :timestamp="modalStore.errorTimestamp"
+      type="error"
+      cancelButtonText="Close"
+      @close="modalStore.closeErrorModal"
+    />
   </div>
 </template>
 

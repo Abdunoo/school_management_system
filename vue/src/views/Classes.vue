@@ -96,7 +96,7 @@
     <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
     <!-- Add/Edit Class Modal -->
-    <Modal :visible="showModal" :title="modalTitle" :confirmButtonText="modalTitle" @close="resetModal"
+    <Modal :visible="showModal" :title="modalTitle" @close="resetModal"
       @confirm="handleFormSubmit">
       <form @submit.prevent>
         <FormField placeholder="Class Name" label="Class Name" id="name" v-model="form.name" required />
@@ -123,6 +123,7 @@ import apiClient from '@/helpers/axios';
 import { ClassItem, Teacher } from '@/types';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
+import { useModalStore } from '../stores/modalStore';
 
 const API_ENDPOINTS = {
   CLASSES: '/api/classes',
@@ -130,6 +131,7 @@ const API_ENDPOINTS = {
 };
 
 const loadingStore = useLoadingStore();
+const modalStore = useModalStore();
 
 const pageTitle = ref('Daftar Kelas');
 const classes = ref<ClassItem[]>([]);
@@ -170,8 +172,9 @@ const fetchClasses = debounce(async () => {
     });
     classes.value = data.data;
     totalRecords.value = data.data.length;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch classes:', error);
+    modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
 }, 300);
@@ -181,8 +184,9 @@ const fetchTeachers = debounce(async () => {
   try {
     const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS);
     teachers.value = data.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch teachers:', error);
+    modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
 }, 300);
@@ -233,8 +237,9 @@ const handleFormSubmit = debounce(async () => {
     await apiClient[method](endpoint, form.value);
     fetchClasses();
     resetModal();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to submit form:', error);
+    modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
 }, 300);

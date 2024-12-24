@@ -18,17 +18,24 @@
               class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full h-full sm:my-8 sm:max-w-lg">
               <!-- Modal Header -->
               <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
+                <div class="flex items-center">
                   <div v-if="icon"
-                    class="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <component :is="icon" class="h-6 w-6 text-red-600" aria-hidden="true" />
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 sm:h-10 sm:w-10">
+                    <component :is="icon" class="h-6 w-6" aria-hidden="true" :class="{
+                      'text-red-500': type === 'error',
+                      'text-yellow-500': type === 'confirm',
+                      'text-blue-500': type === 'form'
+                    }" />
                   </div>
-                  <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div class="ml-4 text-left">
                     <DialogTitle as="h3" class="text-base font-semibold text-gray-900">
                       {{ title }}
                     </DialogTitle>
                     <div v-if="description" class="mt-2">
                       <p class="text-sm text-gray-500">{{ description }}</p>
+                    </div>
+                    <div v-if="type === 'error'" class="mt-2">
+                      <p class="text-sm text-gray-500">{{ timestamp }}</p>
                     </div>
                   </div>
                 </div>
@@ -40,14 +47,14 @@
               </div>
 
               <!-- Modal Footer -->
-              <div class="bg-gray-50 px-4 py-3 space-y-3 md:space-y-0 sm:flex sm:flex-row-reverse sm:px-6">
-                <button v-if="confirmButtonText" @click="confirmAction"
-                  class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
-                  {{ confirmButtonText }}
-                </button>
+              <div class="px-4 py-3 flex space-x-4 w-full justify-end">
                 <button v-if="cancelButtonText" @click="closeModal"
                   class="inline-flex w-full justify-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 sm:w-auto">
                   {{ cancelButtonText }}
+                </button>
+                <button v-if="type === 'confirm' || type === 'form'" @click="confirmAction"
+                  class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
+                  {{ confirmButtonText }}
                 </button>
               </div>
             </DialogPanel>
@@ -58,19 +65,19 @@
   </TransitionRoot>
 </template>
 
-
 <script setup lang="ts">
-import { ref } from "vue";
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from "@headlessui/vue";
-// import { emit } from "process";
+import { CheckIcon, ExclamationTriangleIcon, InformationCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline';
+import { computed, watch } from 'vue';
 
-defineProps({
+const props = defineProps({
   visible: { type: Boolean, required: true },
   title: { type: String, default: "" },
   description: { type: String, default: "" },
-  icon: { type: Object, default: null }, // Ex: Import and pass `ExclamationTriangleIcon`
-  confirmButtonText: { type: String, default: "Add" },
+  type: { type: String, default: "form" },
+  confirmButtonText: { type: String, default: "Save" },
   cancelButtonText: { type: String, default: "Cancel" },
+  timestamp: { type: String, default: "" },
 });
 
 const emit = defineEmits(["close", "confirm"]);
@@ -82,8 +89,22 @@ const closeModal = () => {
 const confirmAction = () => {
   emit("confirm");
 };
-</script>
 
-<style scoped>
-/* Add custom styles if needed */
-</style>
+watch(() => props.timestamp, (newValue) => {
+    console.log(newValue);
+});
+
+const icon = computed(() => {
+  console.log(props.type);
+  switch (props.type) {
+    case 'confirm':
+      return ExclamationTriangleIcon;
+    case 'error':
+      return XCircleIcon;
+    case 'form':
+      return InformationCircleIcon;
+    default:
+      return null;
+  }
+});
+</script>

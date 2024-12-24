@@ -12,8 +12,8 @@ export default {
         primary: '#2563eb', 
         secondary: '#4b5563',
         success: '#16a34a', 
-        danger: '#DC2626',  
-        warning: '#dc2626', 
+        danger: '#dc2626',  
+        warning: '#facc15', 
       },
       spacing: {
         18: '4.5rem', // Custom spacing for better layout options
