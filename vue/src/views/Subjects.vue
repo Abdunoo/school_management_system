@@ -79,101 +79,112 @@
   
       <!-- Add/Edit Subject Modal -->
       <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
-        <form @submit.prevent>
-          <FormField label="Subject Name" id="name" v-model="form.name" required />
+        <form @submit.prevent="handleFormSubmit">
+          <FormField placeholder="Nama Mata Pelajaran" label="Nama Mata Pelajaran" id="name" v-model="form.name" required />
+          <div v-if="formErrors.length" class="mt-4 text-red-500">
+            {{ formErrors.join(', ') }}
+          </div>
         </form>
       </Modal>
     </div>
   </template>
   
   <script setup lang="ts">
-  import { ref, onMounted, computed, watch } from 'vue';
-  import Button from '@/components/common/Button.vue';
-  import Modal from '@/components/common/Modal.vue';
-  import Pagination from '@/components/common/Pagination.vue';
-  import FormField from '@/components/common/FormField.vue';
-  import Badge from '@/components/common/Badge.vue';
-  import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
-  import apiClient from '@/helpers/axios';
-  import { Subject } from '@/types';
-  import debounce from 'lodash.debounce';
+import { ref, onMounted, computed, watch } from 'vue';
+import Button from '@/components/common/Button.vue';
+import Modal from '@/components/common/Modal.vue';
+import Pagination from '@/components/common/Pagination.vue';
+import FormField from '@/components/common/FormField.vue';
+import Badge from '@/components/common/Badge.vue';
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
+import apiClient from '@/helpers/axios';
+import { Subject } from '@/types';
+import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useModalStore } from '../stores/modalStore';
-  
-  const API_ENDPOINTS = {
-    SUBJECTS: '/api/subjects',
-  };
 
-  const loadingStore = useLoadingStore();
+const API_ENDPOINTS = {
+  SUBJECTS: '/api/subjects',
+};
+
+const loadingStore = useLoadingStore();
 const modalStore = useModalStore();
-  
-  const pageTitle = ref('Daftar Mata Pelajaran');
-  const subjects = ref<Subject[]>([]);
-  const perPageOptions = [10, 20, 30];
-  const perPage = ref(perPageOptions[0]);
-  const currentPage = ref(1);
-  const searchQuery = ref('');
-  const totalRecords = ref(0);
-  const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value));
-  const showModal = ref(false);
-  const modalTitle = ref('');
-  const form = ref<Subject>({
-    id: 0,
-    name: '',
-  });
-  
-  const fetchSubjects = debounce(async () => {
-    loadingStore.show();
-    try {
-      const { data } = await apiClient.get(API_ENDPOINTS.SUBJECTS, {
-        params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
-      });
-      console.log(data.data)
-      subjects.value = data.data;
-      totalRecords.value = data.data.length;
-    } catch (error: any) {
-      console.error('Failed to fetch subjects:', error);
-      modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
-  },300);
-  
-  const toggleModal = (type: 'add' | 'edit', subject?: Subject) => {
-    modalTitle.value = type === 'add' ? 'Add Subject' : 'Edit Subject';
-    showModal.value = true;
-    form.value = type === 'edit' ? { ...subject } : resetForm();
-  };
-  
-  const resetForm = () => ({
-    id: 0,
-    name: '',
-  });
-  
-  const resetModal = () => {
-    showModal.value = false;
-    form.value = resetForm();
-  };
-  
-  const handleFormSubmit = async () => {
-    loadingStore.show();
-    const endpoint = form.value.id ? `${API_ENDPOINTS.SUBJECTS}/${form.value.id}` : API_ENDPOINTS.SUBJECTS;
-    const method = form.value.id ? 'put' : 'post';
-    try {
-      await apiClient[method](endpoint, form.value);
-      await fetchSubjects();
-      resetModal();
-    } catch (error: any) {
-      console.error('Failed to submit form:', error);
-      modalStore.showError('Error', error.response.data.message);
-    }
-  };
-  
-  onMounted(async() => {
-    await fetchSubjects();
-  });
-  
-  watch([perPage, currentPage, searchQuery], async() => {
-    await fetchSubjects();
-  });
-  </script>
-  
+
+const pageTitle = ref('Daftar Mata Pelajaran');
+const subjects = ref<Subject[]>([]);
+const perPageOptions = [10, 20, 30];
+const perPage = ref(perPageOptions[0]);
+const currentPage = ref(1);
+const searchQuery = ref('');
+const totalRecords = ref(0);
+const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value));
+const showModal = ref(false);
+const modalTitle = ref('');
+const form = ref<Subject>({
+  id: 0,
+  name: '',
+});
+
+const formErrors = ref<string[]>([]);
+
+const fetchSubjects = debounce(async () => {
+  loadingStore.show();
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.SUBJECTS, {
+      params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
+    });
+    subjects.value = data.data;
+    totalRecords.value = data.data.length;
+  } catch (error: any) {
+    console.error('Failed to fetch subjects:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
+
+const toggleModal = (type: 'add' | 'edit', subject?: Subject) => {
+  modalTitle.value = type === 'add' ? 'Add Subject' : 'Edit Subject';
+  showModal.value = true;
+  form.value = type === 'edit' ? { ...subject } : resetForm();
+};
+
+const resetForm = () => ({
+  id: 0,
+  name: '',
+});
+
+const resetModal = () => {
+  showModal.value = false;
+  form.value = resetForm();
+};
+
+const handleFormSubmit = debounce(async () => {
+  formErrors.value = [];
+  if (!form.value.name) formErrors.value.push('Nama Mata Pelajaran harus diisi');
+
+  if (formErrors.value.length > 0) {
+    return;
+  }
+
+  loadingStore.show();
+  const endpoint = form.value.id ? `${API_ENDPOINTS.SUBJECTS}/${form.value.id}` : API_ENDPOINTS.SUBJECTS;
+  const method = form.value.id ? 'put' : 'post';
+  try {
+    await apiClient[method](endpoint, form.value);
+    fetchSubjects();
+    resetModal();
+  } catch (error: any) {
+    console.error('Failed to submit form:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
+
+onMounted(() => {
+  fetchSubjects();
+});
+
+watch([perPage, currentPage, searchQuery], () => {
+  fetchSubjects();
+});
+</script>

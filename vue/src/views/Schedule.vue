@@ -81,21 +81,22 @@
     <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
     <!-- Add/Edit Schedule Modal -->
-    <Modal :visible="showModal" :title="modalTitle" @close="resetModal"
-      @confirm="handleFormSubmit">
-      <form @submit.prevent>
+    <!-- Add/Edit Schedule Modal -->
+    <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+      <form @submit.prevent="handleFormSubmit">
         <FormField placeholder="Class" label="Class" id="class_id" type="select" v-model="form.class_id"
           :options="classOptions" required />
         <FormField placeholder="Subject" label="Subject" id="subject_id" type="select" v-model="form.subject_id"
           :options="subjectOptions" required />
         <FormField placeholder="Teacher" label="Teacher" id="teacher_id" type="select" v-model="form.teacher_id"
           :options="teacherOptions" required />
-        <FormField placeholder="Day" label="Day" id="day" type="select" v-model="form.day" :options="dayOptions"
+        <FormField placeholder="Day" label="Day" id="day" type="select" v-model="form.day" :options="dayOptions" required />
+        <FormField placeholder="Lesson Hours" label="Lesson Hours" id="lesson_hours" v-model="form.lesson_hours"
           required />
-        <FormField placeholder="Lesson Hours" label="Lesson Hours" id="lesson_hours" type="number"
-          v-model="form.lesson_hours" required />
-        <FormField placeholder="Duration" label="Duration" id="duration" type="number" v-model="form.duration"
-          required />
+        <FormField placeholder="Duration" label="Duration" id="duration" v-model="form.duration" required />
+        <div v-if="formErrors.length" class="mt-4 text-red-500">
+          {{ formErrors.join(', ') }}
+        </div>
       </form>
     </Modal>
   </div>
@@ -150,22 +151,75 @@ const form = ref<ClassScheduleItem>({
   teacher: {},
 });
 
+const formErrors = ref<string[]>([]);
+
+const fetchClassSchedules = debounce(async () => {
+  loadingStore.show();
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.CLASS_SCHEDULES, {
+      params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
+    });
+    classSchedules.value = data.data;
+    totalRecords.value = data.data.length;
+  } catch (error: any) {
+    console.error('Failed to fetch class schedules:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
+
+const fetchClasses = debounce(async () => {
+  loadingStore.show();
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.CLASSES);
+    classes.value = data.data;
+  } catch (error: any) {
+    console.error('Failed to fetch classes:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
+
+const fetchTeachers = debounce(async () => {
+  loadingStore.show();
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS);
+    teachers.value = data.data;
+  } catch (error: any) {
+    console.error('Failed to fetch teachers:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
+
+const fetchSubjects = debounce(async () => {
+  loadingStore.show();
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.SUBJECTS);
+    subjects.value = data.data;
+  } catch (error: any) {
+    console.error('Failed to fetch subjects:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
+
 const classOptions = computed(() =>
-  classes.value.map((classItem) => ({
+  classes.value.map((classItem: ClassItem) => ({
     label: classItem.name,
     value: classItem.id,
   }))
 );
 
 const subjectOptions = computed(() =>
-  subjects.value.map((subject) => ({
+  subjects.value.map((subject: Subject) => ({
     label: subject.name,
     value: subject.id,
   }))
 );
 
 const teacherOptions = computed(() =>
-  teachers.value.map((teacher) => ({
+  teachers.value.map((teacher: Teacher) => ({
     label: teacher.user?.username,
     value: teacher.id,
   }))
@@ -181,82 +235,65 @@ const dayOptions = [
   { label: 'Minggu', value: 'Minggu' },
 ];
 
-const fetchSchedules = async () => {
-  loadingStore.show();
-  try {
-    const response = await apiClient.get(API_ENDPOINTS.CLASS_SCHEDULES, {
-      params: {
-        page: currentPage.value,
-        per_page: perPage.value,
-        search: searchQuery.value,
-      },
-    });
-    classSchedules.value = response.data.data;
-    totalRecords.value = response.data.total;
-  } catch (error: any) {
-    console.error('Failed to fetch class schedules:', error);
-    modalStore.showError('Error', error.response.data.message);
-  }
-  loadingStore.hide();
-};
-
-const fetchClasses = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.CLASSES);
-  classes.value = response.data.data;
-};
-
-const fetchTeachers = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.TEACHERS);
-  teachers.value = response.data.data;
-};
-
-const fetchSubjects = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.SUBJECTS);
-  subjects.value = response.data.data;
-};
-
 const toggleModal = (type: 'add' | 'edit', schedule?: ClassScheduleItem) => {
-  if (type === 'add') {
-    modalTitle.value = 'Add Class Schedule';
-    form.value = {
-      id: 0,
-      class_id: 0,
-      subject_id: 0,
-      teacher_id: 0,
-      day: '',
-      lesson_hours: 0,
-      duration: 0,
-      class: {},
-      subject: {},
-      teacher: {},
-    };
-  } else if (type === 'edit' && schedule) {
-    modalTitle.value = 'Edit Class Schedule';
-    form.value = { ...schedule };
-  }
+  modalTitle.value = type === 'add' ? 'Add Schedule' : 'Edit Schedule';
   showModal.value = true;
+  form.value = type === 'edit' ? { ...schedule } : resetForm();
 };
+
+const resetForm = () => ({
+  id: 0,
+  class_id: 0,
+  subject_id: 0,
+  teacher_id: 0,
+  day: '',
+  lesson_hours: 0,
+  duration: 0,
+  class: {},
+  subject: {},
+  teacher: {},
+});
 
 const resetModal = () => {
   showModal.value = false;
+  form.value = resetForm();
 };
 
-const handleFormSubmit = async () => {
+const handleFormSubmit = debounce(async () => {
+  formErrors.value = [];
+  if (!form.value.class_id) formErrors.value.push('Class harus diisi');
+  if (!form.value.subject_id) formErrors.value.push('Subject harus diisi');
+  if (!form.value.teacher_id) formErrors.value.push('Teacher harus diisi');
+  if (!form.value.day) formErrors.value.push('Day harus diisi');
+  if (!form.value.lesson_hours) formErrors.value.push('Lesson Hours harus diisi');
+  if (!form.value.duration) formErrors.value.push('Duration harus diisi');
+
+  if (formErrors.value.length > 0) {
+    return;
+  }
+
+  loadingStore.show();
+  const endpoint = form.value.id ? `${API_ENDPOINTS.CLASS_SCHEDULES}/${form.value.id}` : API_ENDPOINTS.CLASS_SCHEDULES;
   const method = form.value.id ? 'put' : 'post';
-  const url = form.value.id ? `${API_ENDPOINTS.CLASS_SCHEDULES}/${form.value.id}` : API_ENDPOINTS.CLASS_SCHEDULES;
-
-  await apiClient[method](url, form.value);
-  resetModal();
-  fetchSchedules();
-};
+  try {
+    await apiClient[method](endpoint, form.value);
+    fetchClassSchedules();
+    resetModal();
+  } catch (error: any) {
+    console.error('Failed to submit form:', error);
+    modalStore.showError('Error', error.response.data.message);
+  }
+  loadingStore.hide();
+}, 300);
 
 onMounted(() => {
+  fetchClassSchedules();
   fetchClasses();
   fetchTeachers();
   fetchSubjects();
-  fetchSchedules();
 });
 
-watch([searchQuery, currentPage, perPage], debounce(() => fetchSchedules(), 300));
-
+watch([perPage, currentPage, searchQuery], () => {
+  fetchClassSchedules();
+});
 </script>

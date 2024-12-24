@@ -1,5 +1,6 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto"> <!-- Table Controls -->
+  <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
+    <!-- Table Controls -->
     <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
       <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
       <div class="flex flex-col sm:flex-row sm:justify-between sm:space-x-6 space-y-4 sm:space-y-0">
@@ -96,9 +97,8 @@
     <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
     <!-- Add/Edit Class Modal -->
-    <Modal :visible="showModal" :title="modalTitle" @close="resetModal"
-      @confirm="handleFormSubmit">
-      <form @submit.prevent>
+    <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
+      <form @submit.prevent="handleFormSubmit">
         <FormField placeholder="Class Name" label="Class Name" id="name" v-model="form.name" required />
         <FormField placeholder="Academic Year" label="Academic Year" id="academic_year" type="select"
           v-model="form.academic_year" :options="academicYearOptions" required />
@@ -106,6 +106,9 @@
           v-model="form.homeroom_teacher_id" :options="teacherOptions" required />
         <FormField placeholder="Tidak Aktif" label="Status" id="isActive" type="select" v-model="form.is_active"
           :options="statusOptions" />
+        <div v-if="formErrors.length" class="mt-4 text-red-500">
+          {{ formErrors.join(', ') }}
+        </div>
       </form>
     </Modal>
   </div>
@@ -152,6 +155,8 @@ const form = ref<ClassItem>({
   is_active: 1,
   homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: 0, telepon: '' },
 });
+
+const formErrors = ref<string[]>([]);
 
 const statusOptions = [
   { label: 'Active', value: 1 },
@@ -230,6 +235,15 @@ const resetModal = () => {
 };
 
 const handleFormSubmit = debounce(async () => {
+  formErrors.value = [];
+  if (!form.value.name) formErrors.value.push('Class Name harus diisi');
+  if (!form.value.academic_year) formErrors.value.push('Tahun Akademik harus diisi');
+  if (!form.value.homeroom_teacher_id) formErrors.value.push('Wali Kelas harus diisi');
+
+  if (formErrors.value.length > 0) {
+    return;
+  }
+
   loadingStore.show();
   const endpoint = form.value.id ? `${API_ENDPOINTS.CLASSES}/${form.value.id}` : API_ENDPOINTS.CLASSES;
   const method = form.value.id ? 'put' : 'post';
@@ -251,6 +265,5 @@ onMounted(() => {
 
 watch([perPage, currentPage, searchQuery], () => {
   fetchClasses();
-  fetchTeachers()
 });
 </script>
