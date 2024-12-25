@@ -46,9 +46,9 @@
           </p>
         </div>
 
-        <!-- Tombol Update di pojok kanan bawah -->
+        <!-- Tombol Edit di pojok kanan bawah -->
         <div class="absolute bottom-2 right-2">
-          <Button :variant="'warning'" @click="toggleModal('edit', classItem)">Update</Button>
+          <Button :variant="'warning'" @click="toggleModal('edit', classItem)">Edit</Button>
         </div>
       </div>
     </div>
@@ -86,7 +86,7 @@
               </Badge>
             </td>
             <td class="px-4 py-3">
-              <Button :variant="'warning'" @click="toggleModal('edit', classItem)">Update</Button>
+              <Button :variant="'warning'" @click="toggleModal('edit', classItem)">Edit</Button>
             </td>
           </tr>
         </tbody>
@@ -99,16 +99,19 @@
     <!-- Add/Edit Class Modal -->
     <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
       <form @submit.prevent="handleFormSubmit">
-        <FormField placeholder="Class Name" label="Class Name" id="name" v-model="form.name" required />
-        <FormField placeholder="Academic Year" label="Academic Year" id="academic_year" type="select"
+        <FormField placeholder="Nama Kelas" label="Nama Kelas" id="name" v-model="form.name" required />
+        <div v-if="formErrors.name" class="mt-1 text-sm text-red-500">{{ formErrors.name }}</div>
+
+        <FormField placeholder="Tahun Ajaran" label="Tahun Ajaran" id="academic_year" type="select"
           v-model="form.academic_year" :options="academicYearOptions" required />
-        <FormField placeholder="Homeroom Teacher" label="Homeroom Teacher" id="homeroom_teacher_id" type="select"
+        <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
+
+        <FormField placeholder="Wali Kelas" label="Wali Kelas" id="homeroom_teacher_id" type="select"
           v-model="form.homeroom_teacher_id" :options="teacherOptions" required />
+        <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id }}</div>
+
         <FormField placeholder="Tidak Aktif" label="Status" id="isActive" type="select" v-model="form.is_active"
           :options="statusOptions" />
-        <div v-if="formErrors.length" class="mt-4 text-red-500">
-          {{ formErrors.join(', ') }}
-        </div>
       </form>
     </Modal>
   </div>
@@ -156,7 +159,7 @@ const form = ref<ClassItem>({
   homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: 0, telepon: '' },
 });
 
-const formErrors = ref<string[]>([]);
+const formErrors = ref<{ [key: string]: string }>({});
 
 const statusOptions = [
   { label: 'Active', value: 1 },
@@ -235,12 +238,12 @@ const resetModal = () => {
 };
 
 const handleFormSubmit = debounce(async () => {
-  formErrors.value = [];
-  if (!form.value.name) formErrors.value.push('Class Name harus diisi');
-  if (!form.value.academic_year) formErrors.value.push('Tahun Akademik harus diisi');
-  if (!form.value.homeroom_teacher_id) formErrors.value.push('Wali Kelas harus diisi');
+  formErrors.value = {};
+  if (!form.value.name) formErrors.value.name = 'Nama Kelas harus diisi';
+  if (!form.value.academic_year) formErrors.value.academic_year = 'Tahun Ajaran harus diisi';
+  if (!form.value.homeroom_teacher_id) formErrors.value.homeroom_teacher_id = 'Wali Kelas harus diisi';
 
-  if (formErrors.value.length > 0) {
+  if (Object.keys(formErrors.value).length > 0) {
     return;
   }
 

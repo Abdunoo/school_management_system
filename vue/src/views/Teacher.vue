@@ -61,7 +61,7 @@
                                 ? 'Aktif' : 'Tidak Aktif' }}</Badge>
                         </td>
                         <td class="px-4 py-3">
-                            <Button :variant="'warning'" @click="toggleModal('edit', teacher)">Update</Button>
+                            <Button :variant="'warning'" @click="toggleModal('edit', teacher)">Edit</Button>
                         </td>
                     </tr>
                 </tbody>
@@ -92,7 +92,7 @@
                 <!-- Button on Bottom Right -->
                 <div class="flex justify-end mt-4">
                     <Button :variant="'warning'" @click="toggleModal('edit', teacher)">
-                        Update
+                        Edit
                     </Button>
                 </div>
             </div>
@@ -103,15 +103,20 @@
         <!-- Add/Edit Teacher Modal -->
         <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
             <form @submit.prevent="handleFormSubmit">
-                <FormField label="NIP" id="nip" v-model="form.nip" required />
-                <FormField id="mapel" label="Mapel" type="select" :options="subjectOption" v-model="form.subject_id"
-                placeholder="Pilih Mapel" />
-                <FormField label="Telepon" id="telepon" v-model="form.telepon" required />
-                <FormField id="user" label="User" type="select" :options="usertOption" v-model="form.user_id"
-                placeholder="Pilih Mapel" />
-                <div v-if="formErrors.length" class="mt-4 text-red-500">
-                {{ formErrors.join(', ') }}
+                <FormField placeholder="T-001" label="NIP" id="nip" v-model="form.nip" required />
+                <div v-if="formErrors.nip" class="mt-1 text-sm text-red-500">{{ formErrors.nip }}</div>
+
+                <FormField id="mapel" label="Mata Pelajaran" type="select" :options="subjectOption" v-model="form.subject_id"
+                    placeholder="Mata Pelajaran" />
+                <div v-if="formErrors.subject_id" class="mt-1 text-sm text-red-500">{{ formErrors.subject_id }}
                 </div>
+
+                <FormField placeholder="08***" label="Telepon" id="telepon" v-model="form.telepon" required />
+                <div v-if="formErrors.telepon" class="mt-1 text-sm text-red-500">{{ formErrors.telepon }}</div>
+
+                <FormField id="user" label="User" type="select" :options="usertOption" v-model="form.user_id"
+                    placeholder="User" />
+                <div v-if="formErrors.user_id" class="mt-1 text-sm text-red-500">{{ formErrors.user_id }}</div>
             </form>
         </Modal>
     </div>
@@ -145,10 +150,9 @@ const currentPage = ref(1);
 const searchQuery = ref('');
 const totalRecords = ref(0);
 const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value));
-
 const showModal = ref(false);
 const modalTitle = ref('');
-const formErrors = ref<string[]>([]);
+const formErrors = ref<{ [key: string]: string }>({});
 const form = ref<Teacher>({
     id: 0,
     user_id: 0,
@@ -166,7 +170,6 @@ const form = ref<Teacher>({
         name: '',
     }
 });
-
 
 const fetchTeachers = debounce(async () => {
     loadingStore.show();
@@ -282,13 +285,13 @@ const resetForm = () => ({
 });
 
 const handleFormSubmit = async () => {
-  formErrors.value = [];
-  if (!form.value.nip) formErrors.value.push('NIP harus diisi');
-  if (!form.value.subject_id) formErrors.value.push('Mapel harus diisi');
-  if (!form.value.telepon) formErrors.value.push('Telepon harus diisi');
-  if (!form.value.user_id) formErrors.value.push('User harus diisi');
+  formErrors.value = {};
+  if (!form.value.nip) formErrors.value.nip = 'NIP harus diisi';
+  if (!form.value.subject_id) formErrors.value.subject_id = 'Mapel harus diisi';
+  if (!form.value.telepon) formErrors.value.telepon = 'Telepon harus diisi';
+  if (!form.value.user_id) formErrors.value.user_id = 'User harus diisi';
 
-  if (formErrors.value.length > 0) {
+  if (Object.keys(formErrors.value).length > 0) {
     return;
   }
 

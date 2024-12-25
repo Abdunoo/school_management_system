@@ -39,7 +39,7 @@
           </div>
   
           <div class="absolute bottom-2 right-2">
-            <Button :variant="'warning'" @click="toggleModal('edit', subject)">Update</Button>
+            <Button :variant="'warning'" @click="toggleModal('edit', subject)">Edit</Button>
           </div>
         </div>
       </div>
@@ -67,7 +67,7 @@
               <td class="px-4 py-3 text-secondary">{{ subject.name }}</td>
               <td class="px-4 py-3 text-secondary">{{ subject.created_at }}</td>
               <td class="px-4 py-3">
-                <Button :variant="'warning'" @click="toggleModal('edit', subject)">Update</Button>
+                <Button :variant="'warning'" @click="toggleModal('edit', subject)">Edit</Button>
               </td>
             </tr>
           </tbody>
@@ -81,9 +81,7 @@
       <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
         <form @submit.prevent="handleFormSubmit">
           <FormField placeholder="Nama Mata Pelajaran" label="Nama Mata Pelajaran" id="name" v-model="form.name" required />
-          <div v-if="formErrors.length" class="mt-4 text-red-500">
-            {{ formErrors.join(', ') }}
-          </div>
+          <div v-if="formErrors.name" class="mt-1 text-sm text-red-500">{{ formErrors.name }}</div>
         </form>
       </Modal>
     </div>
@@ -125,7 +123,7 @@ const form = ref<Subject>({
   name: '',
 });
 
-const formErrors = ref<string[]>([]);
+const formErrors = ref<{ [key: string]: string }>({});
 
 const fetchSubjects = debounce(async () => {
   loadingStore.show();
@@ -159,10 +157,10 @@ const resetModal = () => {
 };
 
 const handleFormSubmit = debounce(async () => {
-  formErrors.value = [];
-  if (!form.value.name) formErrors.value.push('Nama Mata Pelajaran harus diisi');
+  formErrors.value = {};
+  if (!form.value.name) formErrors.value.name = 'Nama Mata Pelajaran harus diisi';
 
-  if (formErrors.value.length > 0) {
+  if (Object.keys(formErrors.value).length > 0) {
     return;
   }
 
