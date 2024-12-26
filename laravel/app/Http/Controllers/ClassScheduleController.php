@@ -17,11 +17,13 @@ class ClassScheduleController extends Controller
                 $search = $request->input('search');
                 $query->whereHas('class', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
-                })->orWhereHas('subject', function ($q) use ($search) {
+                })->orWhere('day', 'like', "%{$search}%")
+                  ->orWhereHas('subject', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
                 })->orWhereHas('teacher.user', function ($q) use ($search) {
                     $q->where('username', 'like', "%{$search}%");
-                });
+                })->orWhere('lesson_hours', 'like', "%{$search}%")
+                  ->orWhere('duration', 'like', "%{$search}%");
             }
 
             $perPage = $request->input('per_page', 10);

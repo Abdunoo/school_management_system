@@ -183,7 +183,7 @@ const fetchClassSchedules = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 const fetchClasses = debounce(async () => {
   loadingStore.show();
@@ -195,7 +195,7 @@ const fetchClasses = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 const fetchTeachers = debounce(async () => {
   loadingStore.show();
@@ -207,7 +207,7 @@ const fetchTeachers = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 const fetchSubjects = debounce(async () => {
   loadingStore.show();
@@ -219,7 +219,7 @@ const fetchSubjects = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 const classOptions = computed(() =>
   classes.value.map((classItem: ClassItem) => ({
@@ -291,7 +291,7 @@ const handleFormSubmit = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 onMounted(() => {
   fetchClassSchedules();

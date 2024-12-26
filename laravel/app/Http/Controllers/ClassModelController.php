@@ -14,14 +14,16 @@ class ClassModelController extends Controller
             $query = Classes::with('homeroomTeacher.user');
 
             if ($request->filled('search')) {
-                $search = $request->search;
+                $search = $request->input('search');
 
                 $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : false))
+                    ->orWhere('academic_year', 'like', '%' . $search . '%')
                     ->orWhereHas('homeroomTeacher.user', function ($q) use ($search) {
-                        $q->where('nip', 'like', '%' . $search . '%')
-                          ->orWhere('spesialisasi', 'like', '%' . $search . '%');
-                    })
-                    ->orWhere('academic_year', 'like', '%' . $search . '%');
+                        $q->where('username', 'like', '%' . $search . '%')
+                          ->orWhere('email', 'like', '%' . $search . '%')
+                          ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : null));
+                    });
             }
 
             $perPage = $request->input('per_page', 10);

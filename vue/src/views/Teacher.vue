@@ -188,7 +188,7 @@ const fetchTeachers = debounce(async () => {
         modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
-}, 300);
+}, 500);
 
 const fetchMapel = debounce(async () => {
     loadingStore.show();
@@ -200,7 +200,7 @@ const fetchMapel = debounce(async () => {
         modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
-}, 300);
+}, 500);
 
 const fetchUser = debounce(async () => {
     loadingStore.show();
@@ -212,7 +212,7 @@ const fetchUser = debounce(async () => {
         modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
-}, 300);
+}, 500);
 
 const subjectOption = computed(() =>
     subjects.value.map((subject) => ({

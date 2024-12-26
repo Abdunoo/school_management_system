@@ -185,7 +185,7 @@ const fetchClasses = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 const fetchTeachers = debounce(async () => {
   loadingStore.show();
@@ -197,7 +197,7 @@ const fetchTeachers = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 interface AcademicYearOption {
   label: string;
@@ -259,7 +259,7 @@ const handleFormSubmit = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 onMounted(() => {
   fetchClasses();

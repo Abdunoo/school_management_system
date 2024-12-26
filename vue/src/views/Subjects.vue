@@ -138,7 +138,7 @@ const fetchSubjects = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 const toggleModal = (type: 'add' | 'edit', subject?: Subject) => {
   modalTitle.value = type === 'add' ? 'Add Subject' : 'Edit Subject';
@@ -176,7 +176,7 @@ const handleFormSubmit = debounce(async () => {
     modalStore.showError('Error', error.response.data.message);
   }
   loadingStore.hide();
-}, 300);
+}, 500);
 
 onMounted(() => {
   fetchSubjects();
