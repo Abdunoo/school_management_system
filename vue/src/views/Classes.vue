@@ -59,10 +59,22 @@
       <table class="min-w-full table-auto text-sm text-left">
         <thead>
           <tr class="bg-gray-100 grid grid-cols-5 rounded-xl">
-            <th class="px-4 py-3 text-secondary">Nama Kelas</th>
-            <th class="px-4 py-3 text-secondary">Tahun Akademik</th>
-            <th class="px-4 py-3 text-secondary">Wali Kelas</th>
-            <th class="px-4 py-3 text-secondary">Status</th>
+            <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('name')">
+              Nama Kelas
+              <span v-if="sortField === 'name'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('academic_year')">
+              Tahun Akademik
+              <span v-if="sortField === 'academic_year'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('homeroom_teacher_id')">
+              Wali Kelas
+              <span v-if="sortField === 'homeroom_teacher_id'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
+            <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('is_active')">
+              Status
+              <span v-if="sortField === 'is_active'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+            </th>
             <th class="px-4 py-3 text-secondary">Actions</th>
           </tr>
         </thead>
@@ -165,6 +177,7 @@ const statusOptions = [
   { label: 'Active', value: 1 },
   { label: 'Inactive', value: 0 },
 ];
+
 const teacherOptions = computed(() =>
   teachers.value.map((teacher: Teacher) => ({
     label: `${teacher.user?.username} - ${teacher.nip}`,
@@ -176,10 +189,16 @@ const fetchClasses = debounce(async () => {
   loadingStore.show();
   try {
     const { data } = await apiClient.get(API_ENDPOINTS.CLASSES, {
-      params: { per_page: perPage.value, page: currentPage.value, search: searchQuery.value },
+      params: {
+        per_page: perPage.value,
+        page: currentPage.value,
+        search: searchQuery.value,
+        sortField: sortField.value,
+        sortOrder: sortOrder.value
+      },
     });
     classes.value = data.data;
-    totalRecords.value = data.data.length;
+    totalRecords.value = data.total;
   } catch (error: any) {
     console.error('Failed to fetch classes:', error);
     modalStore.showError('Error', error.response.data.message);
@@ -239,8 +258,8 @@ const resetModal = () => {
 
 const handleFormSubmit = debounce(async () => {
   formErrors.value = {};
-  if (!form.value.name) formErrors.value.name = 'Nama Kelas harus diisi';
-  if (!form.value.academic_year) formErrors.value.academic_year = 'Tahun Ajaran harus diisi';
+  if (!form.value.name) formErrors.value.name = 'Class Name harus diisi';
+  if (!form.value.academic_year) formErrors.value.academic_year = 'Tahun Akademik harus diisi';
   if (!form.value.homeroom_teacher_id) formErrors.value.homeroom_teacher_id = 'Wali Kelas harus diisi';
 
   if (Object.keys(formErrors.value).length > 0) {
@@ -269,4 +288,17 @@ onMounted(() => {
 watch([perPage, currentPage, searchQuery], () => {
   fetchClasses();
 });
+
+const sortField = ref('name');
+const sortOrder = ref('asc');
+
+const sort = (field: string) => {
+  if (sortField.value === field) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortField.value = field;
+    sortOrder.value = 'asc';
+  }
+  fetchClasses();
+};
 </script>

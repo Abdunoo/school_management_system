@@ -17,13 +17,27 @@ class ClassModelController extends Controller
                 $search = $request->input('search');
 
                 $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : false))
+                    ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : true))
                     ->orWhere('academic_year', 'like', '%' . $search . '%')
                     ->orWhereHas('homeroomTeacher.user', function ($q) use ($search) {
                         $q->where('username', 'like', '%' . $search . '%')
                           ->orWhere('email', 'like', '%' . $search . '%')
-                          ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : null));
+                          ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : true));
                     });
+            }
+
+            if ($request->filled('sortField') && $request->filled('sortOrder')) {
+                $sortField = $request->input('sortField');
+                $sortOrder = $request->input('sortOrder');
+
+                if (in_array($sortField, ['name', 'academic_year', 'homeroom_teacher_id', 'is_active'])) {
+                    if ($sortField == 'homeroom_teacher_id') {
+                        $query->join('teachers', 'classes.homeroom_teacher_id', '=', 'teachers.id')
+                              ->orderBy("teachers.user_id", $sortOrder);
+                    } else {
+                        $query->orderBy($sortField, $sortOrder);
+                    }
+                }
             }
 
             $perPage = $request->input('per_page', 10);

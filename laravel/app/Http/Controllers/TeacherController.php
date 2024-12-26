@@ -28,6 +28,20 @@ class TeacherController extends Controller
                     });
             }
 
+            if ($request->filled('sortField') && $request->filled('sortOrder')) {
+                $sortField = $request->input('sortField');
+                $sortOrder = $request->input('sortOrder');
+
+                if (in_array($sortField, ['nip', 'telepon', 'subject_id', 'username', 'email'])) {
+                    if ($sortField == 'username' || $sortField == 'email') {
+                        $query->join('users', 'teachers.user_id', '=', 'users.id')
+                              ->orderBy("users.$sortField", $sortOrder);
+                    } else {
+                        $query->orderBy($sortField, $sortOrder);
+                    }
+                }
+            }
+
             $perPage = $request->input('per_page', 10);
             $teachers = $query->paginate($perPage);
 

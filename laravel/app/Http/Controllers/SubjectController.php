@@ -18,6 +18,15 @@ class SubjectController extends Controller
                 $query->where('name', 'like', '%' . $request->search . '%');
             }
 
+            if ($request->filled('sortField') && $request->filled('sortOrder')) {
+                $sortField = $request->input('sortField');
+                $sortOrder = $request->input('sortOrder');
+
+                if (in_array($sortField, ['name', 'created_at'])) {
+                    $query->orderBy($sortField, $sortOrder);
+                }
+            }
+
             $perPage = $request->input('per_page', 10);
             $subjects = $query->paginate($perPage);
 

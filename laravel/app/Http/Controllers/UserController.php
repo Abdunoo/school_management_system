@@ -12,6 +12,7 @@ class UserController extends Controller
     {
         $perPage = $request->input('per_page', 100); // Default to 100 if not provided
         $search = $request->input('search', '');
+        $role = $request->input('role', '');
 
         try {
             $query = User::query();
@@ -21,10 +22,14 @@ class UserController extends Controller
                       ->orWhere('email', 'like', '%' . $search . '%');
             }
 
+            if ($role) {
+                $query->where('role', $role);
+            }
+
             $users = $query->paginate($perPage);
             return $this->json(200, 'Users retrieved successfully', $users);
         } catch (\Exception $e) {
-            return $this->json(500, 'Failed to retrieve users', null, ['error' => $e->getMessage()]);
+            return $this->json(500, 'Failed to retrieve users : '. $e->getMessage());
         }
     }
 

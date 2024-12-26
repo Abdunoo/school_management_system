@@ -32,19 +32,32 @@
             <table class="min-w-full table-auto text-sm text-left">
                 <thead>
                     <tr class="bg-gray-100 grid grid-cols-7 rounded-xl">
-                        <th class="px-4 py-3 text-secondary">NIP</th>
-                        <th class="px-4 py-3 text-secondary">Mapel</th>
-                        <th class="px-4 py-3 text-secondary">Telepon</th>
-                        <th class="px-4 py-3 text-secondary">Username</th>
-                        <th class="px-4 py-3 text-secondary">Email</th>
-                        <th class="px-4 py-3 text-secondary">Status</th>
-                        <th class="px-4 py-3 text-secondary">Actions</th>
+                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('nip')">
+                            NIP
+                            <span v-if="sortField === 'nip'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        </th>
+                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('subject_id')">
+                            Mapel
+                            <span v-if="sortField === 'subject_id'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        </th>
+                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('telepon')">
+                            Telepon
+                            <span v-if="sortField === 'telepon'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        </th>
+                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('username')">
+                            Username
+                            <span v-if="sortField === 'username'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        </th>
+                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('email')">
+                            Email
+                            <span v-if="sortField === 'email'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        </th>
+                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('is_active')">
+                            Status
+                            <span v-if="sortField === 'is_active'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        </th>                        <th class="px-4 py-3 text-secondary">Actions</th>
                     </tr>
                 </thead>
-            </table>
-        </div>
-        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
-            <table class="rounded-xl min-w-full table-auto text-sm text-left">
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="teachers.length === 0">
                         <td colspan="7" class="text-center py-4 text-secondary">No teachers found.</td>
@@ -106,8 +119,8 @@
                 <FormField placeholder="T-001" label="NIP" id="nip" v-model="form.nip" required />
                 <div v-if="formErrors.nip" class="mt-1 text-sm text-red-500">{{ formErrors.nip }}</div>
 
-                <FormField id="mapel" label="Mata Pelajaran" type="select" :options="subjectOption" v-model="form.subject_id"
-                    placeholder="Mata Pelajaran" />
+                <FormField id="mapel" label="Mata Pelajaran" type="select" :options="subjectOption"
+                    v-model="form.subject_id" placeholder="Mata Pelajaran" />
                 <div v-if="formErrors.subject_id" class="mt-1 text-sm text-red-500">{{ formErrors.subject_id }}
                 </div>
 
@@ -171,6 +184,9 @@ const form = ref<Teacher>({
     }
 });
 
+const sortField = ref('nip');
+const sortOrder = ref('asc');
+
 const fetchTeachers = debounce(async () => {
     loadingStore.show();
     try {
@@ -179,6 +195,8 @@ const fetchTeachers = debounce(async () => {
                 perPage: perPage.value,
                 page: currentPage.value,
                 search: searchQuery.value,
+                sortField: sortField.value,
+                sortOrder: sortOrder.value,
             },
         });
         teachers.value = response.data.data;
@@ -205,7 +223,11 @@ const fetchMapel = debounce(async () => {
 const fetchUser = debounce(async () => {
     loadingStore.show();
     try {
-        const response = await apiClient.get('/api/users');
+        const response = await apiClient.get('/api/users', {
+            params: {
+                role: 'teacher',
+            },
+        });
         users.value = response.data.data;
     } catch (error: any) {
         console.error(error);
@@ -285,28 +307,38 @@ const resetForm = () => ({
 });
 
 const handleFormSubmit = async () => {
-  formErrors.value = {};
-  if (!form.value.nip) formErrors.value.nip = 'NIP harus diisi';
-  if (!form.value.subject_id) formErrors.value.subject_id = 'Mapel harus diisi';
-  if (!form.value.telepon) formErrors.value.telepon = 'Telepon harus diisi';
-  if (!form.value.user_id) formErrors.value.user_id = 'User harus diisi';
+    formErrors.value = {};
+    if (!form.value.nip) formErrors.value.nip = 'NIP harus diisi';
+    if (!form.value.subject_id) formErrors.value.subject_id = 'Mapel harus diisi';
+    if (!form.value.telepon) formErrors.value.telepon = 'Telepon harus diisi';
+    if (!form.value.user_id) formErrors.value.user_id = 'User harus diisi';
 
-  if (Object.keys(formErrors.value).length > 0) {
-    return;
-  }
+    if (Object.keys(formErrors.value).length > 0) {
+        return;
+    }
 
-  loadingStore.show();
-  const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
-  const method = form.value.id ? 'put' : 'post';
+    loadingStore.show();
+    const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
+    const method = form.value.id ? 'put' : 'post';
 
-  try {
-    await apiClient[method](endpoint, form.value);
-    resetModal();
+    try {
+        await apiClient[method](endpoint, form.value);
+        resetModal();
+        fetchTeachers();
+    } catch (error: any) {
+        console.error('Failed to submit form:', error);
+        modalStore.showError('Error', error.response.data.message);
+    }
+    loadingStore.hide();
+};
+
+const sort = (field: string) => {
+    if (sortField.value === field) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortField.value = field;
+        sortOrder.value = 'asc';
+    }
     fetchTeachers();
-  } catch (error: any) {
-    console.error('Failed to submit form:', error);
-    modalStore.showError('Error', error.response.data.message);
-  }
-  loadingStore.hide();
 };
 </script>
