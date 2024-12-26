@@ -141,7 +141,7 @@ import apiClient from '@/helpers/axios';
 import { ClassItem, Teacher } from '@/types';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
-import { useModalStore } from '../stores/modalStore';
+import { useModalStore } from '@/stores/modalStore';
 
 const API_ENDPOINTS = {
   CLASSES: '/api/classes',
@@ -181,7 +181,7 @@ const statusOptions = [
 const teacherOptions = computed(() =>
   teachers.value.map((teacher: Teacher) => ({
     label: `${teacher.user?.username} - ${teacher.nip}`,
-    value: teacher.id,
+    value: teacher.id ?? 0,
   }))
 );
 

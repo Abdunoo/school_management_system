@@ -11,11 +11,25 @@ class TeachersSeeder extends Seeder
 {
     public function run()
     {
-        for ($i = 1; $i <= 20; $i++) {
-            // Buat data user untuk teacher
+        // Array of real usernames with spaces
+        $realUsernames = [
+            'Andi Pratama',
+            'Budi Santoso',
+            'Citra Rahmawati',
+            'Dani Purnama',
+            'Elisabeth Sari',
+            'Fahmi Hidayat',
+            'Gita Wulandari',
+            'Hendra Setiawan',
+            'Indra Yulianto',
+            'Julia Melati'
+        ];
+
+        foreach ($realUsernames as $i => $username) {
+            // Buat data user untuk teacher dengan username yang sesuai
             $userId = DB::table('users')->insertGetId([
-                'username' => 'teacher' . $i,
-                'email' => 'teacher' . $i . '@example.com',
+                'username' => $username,
+                'email' => strtolower(str_replace(' ', '.', $username)) . '@example.com', // Using username with space converted to email
                 'password' => Hash::make('password'), // Password default
                 'role' => 'teacher',
                 'is_active' => 1,
@@ -26,9 +40,9 @@ class TeachersSeeder extends Seeder
             // Buat data teacher dengan user_id yang terhubung
             DB::table('teachers')->insert([
                 'user_id' => $userId,
-                'nip' => 'T' . str_pad($i, 3, '0', STR_PAD_LEFT),
-                'subject_id' => rand(1,3),
-                'telepon' => '081234567' . str_pad($i, 2, '0', STR_PAD_LEFT),
+                'nip' => 'T' . str_pad($i + 1, 3, '0', STR_PAD_LEFT),
+                'subject_id' => rand(1, 3), // Assumes subject IDs are 1 to 3
+                'telepon' => '081234567' . str_pad($i + 1, 2, '0', STR_PAD_LEFT),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);

@@ -36,9 +36,12 @@ defineProps({
     type: { 
         type: String, 
         default: 'text', // Default type is 'text'
-        validator: value => ['text', 'number', 'email', 'password', 'date', 'select'].includes(value) // Supported types
+        validator: (value: string) => ['text', 'number', 'email', 'password', 'date', 'select'].includes(value) // Supported types
     },
-    options: { type: Array, default: () => [] }, // For 'select' type, array of objects { label, value }
+    options: { 
+        type: Array as () => Array<{ label: string, value: string | number }>, 
+        default: () => [] 
+    }, // For 'select' type, array of objects { label, value }
     placeholder: { type: String, default: '' },
     required: { type: Boolean, default: false },
     modelValue: [String, Number, Object], // Supports binding to various data types

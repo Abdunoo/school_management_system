@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import PageHeader from '../components/common/PageHeader.vue';
-import StatsOverview from '../components/dashboard/StatsOverview.vue';
-import RecentActivity from '../components/dashboard/RecentActivity.vue';
+import PageHeader from '@/components/common/PageHeader.vue';
+import StatsOverview from '@/components/dashboard/StatsOverview.vue';
+import RecentActivity from '@/components/dashboard/RecentActivity.vue';
 
 const pageTitle = "Dashboard";
 </script>

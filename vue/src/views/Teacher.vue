@@ -147,8 +147,8 @@ import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import debounce from 'lodash.debounce';
 import Pagination from '@/components/common/Pagination.vue';
 import { useLoadingStore } from '@/stores/loadingStore';
-import { User } from '../types/index';
-import { useModalStore } from '../stores/modalStore';
+import { User } from '@/types/index';
+import { useModalStore } from '@/stores/modalStore';
 
 const loadingStore = useLoadingStore();
 const modalStore = useModalStore();

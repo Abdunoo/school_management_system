@@ -16,7 +16,7 @@ export interface Teacher {
   telepon?: string;
   created_at?: Date | String;
   updated_at?: Date | String;
-  user?: User; 
+  user?: User;
   subject?: Subject
 }
 
@@ -36,7 +36,7 @@ export interface ClassItem {
   is_active?: number;
   created_at?: Date | String;
   updated_at?: Date | String;
-  homeroom_teacher?: Teacher; 
+  homeroom_teacher?: Teacher;
 }
 
 export interface ActivityLog {
@@ -57,13 +57,22 @@ export interface Subject {
 
 export interface ClassScheduleItem {
   id?: number;
-  class_id : number;
-  subject_id : number;
-  teacher_id : number;
-  day : string;
-  lesson_hours : number;
-  duration : number;
-  class: ClassItem;
-  subject: Subject;
-  teacher: Teacher;
+  class_id?: number;
+  subject_id?: number;
+  teacher_id?: number;
+  day?: string;
+  lesson_hours?: number;
+  duration?: number;
+  class?: ClassItem;
+  subject?: Subject;
+  teacher?: Teacher;
+}
+
+export interface ClassSchedule {
+  id: number;
+  name: string;
+  academic_year: string;
+  homeroom_teacher: String;
+  total_duration: number;
+  total_subjects: number;
 }

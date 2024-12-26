@@ -10,34 +10,34 @@ class UsersSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('users')->insert([
-            [
-                'username' => 'admin',
-                'password' => Hash::make('password'),
-                'email' => 'admin@example.com',
-                'role' => 'admin',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'username' => 'teacher',
-                'password' => Hash::make('password'),
-                'email' => 'teacher@example.com',
-                'role' => 'teacher',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'username' => 'student1',
-                'password' => Hash::make('password'),
-                'email' => 'student1@example.com',
-                'role' => 'student',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        // DB::table('users')->insert([
+        //     [
+        //         'username' => 'admin',
+        //         'password' => Hash::make('password'),
+        //         'email' => 'admin@example.com',
+        //         'role' => 'admin',
+        //         'is_active' => true,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        //     [
+        //         'username' => 'teacher',
+        //         'password' => Hash::make('password'),
+        //         'email' => 'teacher@example.com',
+        //         'role' => 'teacher',
+        //         'is_active' => true,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        //     [
+        //         'username' => 'student1',
+        //         'password' => Hash::make('password'),
+        //         'email' => 'student1@example.com',
+        //         'role' => 'student',
+        //         'is_active' => true,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        // ]);
     }
 }

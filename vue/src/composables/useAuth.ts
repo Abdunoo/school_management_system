@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import type { User } from '../types';
+import type { User } from '@/types';
 
 export function useAuth() {
   const currentUser = ref<User | null>(null);

@@ -106,7 +106,7 @@ import apiClient from '@/helpers/axios';
 import { Subject } from '@/types';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
-import { useModalStore } from '../stores/modalStore';
+import { useModalStore } from '@/stores/modalStore';
 
 const API_ENDPOINTS = {
   SUBJECTS: '/api/subjects',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import PageHeader from '../components/common/PageHeader.vue';
+import PageHeader from '@/components/common/PageHeader.vue';
 
 const pageTitle = ref('Students Management');
 </script>

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Dashboard from '../views/Dashboard.vue';
+import Dashboard from '@/views/Dashboard.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,32 +12,37 @@ const router = createRouter({
     {
       path: '/teachers',
       name: 'Teachers',
-      component: () => import('../views/Teacher.vue')
+      component: () => import('@/views/Teacher.vue')
     },
     {
       path: '/students',
       name: 'Students',
-      component: () => import('../views/Students.vue')
+      component: () => import('@/views/Students.vue')
     },
     {
       path: '/classes',
       name: 'Classes',
-      component: () => import('../views/Classes.vue')
+      component: () => import('@/views/Classes.vue')
     },
     {
       path: '/subjects',
       name: 'Subjects',
-      component: () => import('../views/Subjects.vue')
+      component: () => import('@/views/Subjects.vue')
     },
     {
       path: '/schedule',
       name: 'Schedule',
-      component: () => import('../views/Schedule.vue')
+      component: () => import('@/views/Schedule.vue')
+    },
+    {
+      path: '/detail-schedule/:name',
+      name: 'DetailSchedule',
+      component: () => import('@/views/DetailSchedule.vue')
     },
     {
       path: '/reports',
       name: 'Reports',
-      component: () => import('../views/Reports.vue')
+      component: () => import('@/views/Reports.vue')
     }
   ]
 });
