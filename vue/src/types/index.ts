@@ -9,15 +9,16 @@ export interface User {
 }
 
 export interface Teacher {
-  id?: number; // Changed to number based on the response
-  user_id?: number; // Changed to number based on the response
+  id?: number;
+  user_id?: number;
   nip?: string;
-  subject_id?: number;
   telepon?: string;
-  created_at?: Date | String;
-  updated_at?: Date | String;
+  gender?: string;
+  created_at?: string;
+  updated_at?: string;
   user?: User;
-  subject?: Subject
+  subjects?: Subject[];
+  subject_ids?: number[];
 }
 
 export interface Student {
@@ -50,7 +51,6 @@ export interface ActivityLog {
 export interface Subject {
   id?: number;
   name?: string;
-  // code?: string;
   created_at?: Date | String;
   updated_at?: Date | String;
 }

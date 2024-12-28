@@ -9,7 +9,7 @@ export default {
         sans: ['Nunito', 'sans-serif'], // Set Nunito as the default sans-serif font
       },
       colors: {
-        primary: '#2563eb', 
+        primary: '#0284c7', 
         secondary: '#4b5563',
         success: '#16a34a', 
         danger: '#dc2626',  

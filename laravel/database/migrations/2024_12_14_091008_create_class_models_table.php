@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 50);
             $table->string('academic_year', 50);
-            $table->foreignId('homeroom_teacher_id')->constrained('teachers');
+            $table->foreignId('homeroom_teacher_id')->unique()->constrained('teachers');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

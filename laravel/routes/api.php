@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     StudentController,
     SubjectController,
     ClassModelController,
-    ClassScheduleController
+    ClassScheduleController,
+    DashboardController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,6 @@ Route::apiResource('/students', StudentController::class);
 Route::apiResource('/subjects', SubjectController::class);
 Route::apiResource('/classes', ClassModelController::class);
 Route::apiResource('/class-schedules', ClassScheduleController::class);
+Route::post('/class-schedules/bulk-update', [ClassScheduleController::class, 'bulkUpdate']);
 Route::get('/class-schedules/by-class/{className}', [ClassScheduleController::class, 'getScheduleByClassName']);
+Route::get('/dashboard/counts', [DashboardController::class, 'getCounts']);

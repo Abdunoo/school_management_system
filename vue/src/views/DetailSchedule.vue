@@ -15,18 +15,6 @@
         </div>
 
         <div class="flex flex-wrap lg:flex-nowrap space-y-4 lg:space-y-0 lg:space-x-4">
-            <!-- <div
-                class="flex flex-col space-y-4 bg-gray-50 border rounded-lg shadow-md border-gray-200 p-4 w-full lg:w-auto">
-                <div class="bg-white border border-gray-200 rounded-md shadow-sm p-4" title="Jam Pelajaran">
-                    <h2 class="text-lg font-semibold text-center text-gray-700 line-clamp-1">JP</h2>
-                </div>
-
-                <div v-for="hour in lessonHours" :key="hour"
-                    class="text-center flex items-center justify-center p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md h-36">
-                    Jam Ke {{ hour }}
-                </div>
-            </div> -->
-
             <!-- Right Panel (Schedules) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full">
                 <div v-for="(column, index) in columns" :key="index" :data-index="index"
@@ -102,9 +90,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import draggable from 'vuedraggable';
 import debounce from 'lodash.debounce';
+import { from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import apiClient from '@/helpers/axios';
 import { useModalStore } from '@/stores/modalStore';
 import { useLoadingStore } from '@/stores/loadingStore';
@@ -123,6 +113,7 @@ const API_ENDPOINTS = {
     CLASSES: '/api/classes',
     TEACHERS: '/api/teachers',
     SUBJECTS: '/api/subjects',
+    BULK_UPDATE: '/api/class-schedules/bulk-update',
 };
 
 const loadingStore = useLoadingStore();
@@ -164,17 +155,23 @@ const mapScheduleToColumns = (data: any[]) => {
     return columns;
 };
 
-const fetchClassSchedules = debounce(async () => {
+const fetchClassSchedules = debounce(() => {
     loadingStore.show();
-    try {
-        const { data } = await apiClient.get(API_ENDPOINTS.DETAIL_CLASS_SCHEDULES);
-        columns.value = mapScheduleToColumns(data.schedules);
-        lessonHours.value = data.list_lesson_hours;
-    } catch (error: any) {
-        console.error('Failed to fetch class schedules:', error);
-        modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
+    from(apiClient.get(API_ENDPOINTS.DETAIL_CLASS_SCHEDULES)).pipe(
+        switchMap(response => {
+            const data = response.data;
+            columns.value = mapScheduleToColumns(data.schedules);
+            lessonHours.value = data.list_lesson_hours;
+            return [];
+        })
+    ).subscribe({
+        error: (error: any) => {
+            console.error('Failed to fetch class schedules:', error);
+            modalStore.showError('Error', error.response.data.message);
+            loadingStore.hide();
+        },
+        complete: () => loadingStore.hide()
+    });
 }, 500);
 
 // Initialize columns
@@ -211,42 +208,59 @@ const dayOptions = [
     { label: 'Minggu', value: 'Minggu' },
 ];
 
-const fetchClasses = debounce(async () => {
+const fetchClasses = debounce(() => {
     loadingStore.show();
-    try {
-        const { data } = await apiClient.get(API_ENDPOINTS.CLASSES);
-        classes.value = data.data;
-    } catch (error: any) {
-        console.error('Failed to fetch classes:', error);
-        modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
+    from(apiClient.get(API_ENDPOINTS.CLASSES)).pipe(
+        switchMap(response => {
+            classes.value = response.data.data;
+            return [];
+        })
+    ).subscribe({
+        error: (error: any) => {
+            console.error('Failed to fetch classes:', error);
+            modalStore.showError('Error', error.response.data.message);
+            loadingStore.hide();
+        },
+        complete: () => loadingStore.hide()
+    });
 }, 500);
 
-const fetchTeachers = debounce(async () => {
+const fetchTeachers = debounce((subjectId: number) => {
     loadingStore.show();
-    try {
-        const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS);
-        teachers.value = data.data;
-    } catch (error: any) {
-        console.error('Failed to fetch teachers:', error);
-        modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
+    from(apiClient.get(API_ENDPOINTS.TEACHERS, {
+        params: { subject_id: subjectId },
+    })).pipe(
+        switchMap(response => {
+            teachers.value = response.data.data;
+            return [];
+        })
+    ).subscribe({
+        error: (error: any) => {
+            console.error('Failed to fetch teachers:', error);
+            modalStore.showError('Error', error.response.data.message);
+            loadingStore.hide();
+        },
+        complete: () => loadingStore.hide()
+    });
 }, 500);
 
-const fetchSubjects = debounce(async () => {
+const fetchSubjects = debounce(() => {
     loadingStore.show();
-    try {
-        const { data } = await apiClient.get(API_ENDPOINTS.SUBJECTS, {
-            params: { per_page: 100 },
-        });
-        subjects.value = data.data;
-    } catch (error: any) {
-        console.error('Failed to fetch subjects:', error);
-        modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
+    from(apiClient.get(API_ENDPOINTS.SUBJECTS, {
+        params: { per_page: 100 },
+    })).pipe(
+        switchMap(response => {
+            subjects.value = response.data.data;
+            return [];
+        })
+    ).subscribe({
+        error: (error: any) => {
+            console.error('Failed to fetch subjects:', error);
+            modalStore.showError('Error', error.response.data.message);
+            loadingStore.hide();
+        },
+        complete: () => loadingStore.hide()
+    });
 }, 500);
 
 const classOptions = computed(() =>
@@ -286,11 +300,18 @@ const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
             subject: schedule.subject,
             teacher: schedule.teacher,
         };
+        fetchTeachers(schedule.subject_id ?? 0); // Fetch teachers based on the selected subject
     } else {
         form.value = resetForm();
     }
     console.log('Form:', form.value);
 };
+
+watch(() => form.value.subject_id, (newSubjectId) => {
+    if (newSubjectId) {
+        fetchTeachers(newSubjectId); // Fetch teachers when a new subject is selected
+    }
+});
 
 const onDragEnd = (event: any) => {
     const { item, to, from, newIndex, oldIndex } = event;
@@ -371,37 +392,36 @@ const handleFormSubmit = debounce(async () => {
     loadingStore.show();
     const endpoint = form.value.id ? `${API_ENDPOINTS.CLASS_SCHEDULES}/${form.value.id}` : API_ENDPOINTS.CLASS_SCHEDULES;
     const method = form.value.id ? 'put' : 'post';
-    try {
-        await apiClient[method](endpoint, form.value);
-        fetchClassSchedules();
-        resetModal();
-    } catch (error: any) {
-        console.error('Failed to submit form:', error);
-        modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
+    from(apiClient[method](endpoint, form.value)).subscribe({
+        error: (error: any) => {
+            console.error('Failed to submit form:', error);
+            modalStore.showError('Error', error.response.data.message);
+            loadingStore.hide();
+        },
+        complete: () => {
+            fetchClassSchedules();
+            resetModal();
+            loadingStore.hide();
+        }
+    });
 }, 500);
 
 const saveAllSchedules = debounce(async () => {
-    const schedules = columns.value.flatMap(column => column.schedules);
-    console.log(schedules)
-    // return;
     loadingStore.show();
-    try {
-        const schedules = columns.value.flatMap(column => column.schedules);
-        await apiClient.put(`${API_ENDPOINTS.CLASS_SCHEDULES}/${className}`, { schedules });
-        // modalStore.showSuccess('Success', 'All schedules saved successfully.');
-    } catch (error: any) {
-        console.error('Failed to save all schedules:', error);
-        modalStore.showError('Error', error.response.data.message);
-    }
-    loadingStore.hide();
+    const schedules = columns.value.flatMap(column => column.schedules);
+    from(apiClient.post(`${API_ENDPOINTS.BULK_UPDATE}`, { schedules })).subscribe({
+        error: (error: any) => {
+            console.error('Failed to save all schedules:', error);
+            modalStore.showError('Error', error.response.data.message);
+            loadingStore.hide();
+        },
+        complete: () => loadingStore.hide()
+    });
 }, 500);
 
 onMounted(() => {
     fetchClassSchedules();
     fetchClasses();
-    fetchTeachers();
     fetchSubjects();
 });
 </script>

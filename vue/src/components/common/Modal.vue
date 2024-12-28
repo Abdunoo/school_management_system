@@ -48,14 +48,12 @@
 
               <!-- Modal Footer -->
               <div class="px-4 py-3 flex space-x-4 w-full justify-end">
-                <button v-if="cancelButtonText" @click="closeModal"
-                  class="inline-flex w-full justify-center rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 sm:w-auto">
+                <Button v-if="cancelButtonText" @click="closeModal" variant="secondary">
                   {{ cancelButtonText }}
-                </button>
-                <button v-if="type === 'confirm' || type === 'form'" @click="confirmAction"
-                  class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">
+                </Button>
+                <Button v-if="type === 'confirm' || type === 'form'" @click="confirmAction" variant="primary">
                   {{ confirmButtonText }}
-                </button>
+                </Button>
               </div>
             </DialogPanel>
           </TransitionChild>
@@ -69,6 +67,7 @@
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from "@headlessui/vue";
 import { ExclamationTriangleIcon, InformationCircleIcon, XCircleIcon } from '@heroicons/vue/24/outline';
 import { computed, watch } from 'vue';
+import Button from '@/components/common/Button.vue';
 
 const props = defineProps({
   visible: { type: Boolean, required: true },

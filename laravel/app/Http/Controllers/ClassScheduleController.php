@@ -103,32 +103,35 @@ class ClassScheduleController extends Controller
         }
     }
 
-    public function update(Request $request, $className)
+    public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'schedules' => 'required|array',
-            'schedules.*.id' => 'required|exists:class_schedules,id',
-            'schedules.*.class_id' => 'required|exists:classes,id',
-            'schedules.*.subject_id' => 'required|exists:subjects,id',
-            'schedules.*.teacher_id' => 'required|exists:teachers,id',
-            'schedules.*.day' => 'required|string',
-            'schedules.*.lesson_hours' => 'required|integer',
-            'schedules.*.duration' => 'required|integer',
-            'schedules.*.time' => 'required|string',
+            'class_id' => 'exists:classes,id',
+            'subject_id' => 'exists:subjects,id',
+            'teacher_id' => 'exists:teachers,id',
+            'start_time' => 'date_format:H:i',
+            'end_time' => 'date_format:H:i|after:start_time',
         ]);
 
         if ($validator->fails()) {
             return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
         }
 
+        $conflict = ClassSchedule::where('teacher_id', $request->teacher_id)
+            ->where('day', $request->day)
+            ->where('lesson_hours', $request->lesson_hours)
+            ->exists();
+
+        if ($conflict) {
+            return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
+        }
+
         try {
-            foreach ($request->input('schedules') as $scheduleData) {
-                $schedule = ClassSchedule::findOrFail($scheduleData['id']);
-                $schedule->update($scheduleData);
-            }
-            return $this->json(200, 'Class schedules updated successfully');
+            $schedule = ClassSchedule::findOrFail($id);
+            $schedule->update($request->all());
+            return $this->json(200, 'Class schedule updated successfully', $schedule);
         } catch (\Exception $e) {
-            return $this->json(500, 'Failed to update class schedules', null, ['error' => $e->getMessage()]);
+            return $this->json(500, 'Failed to update class schedule', null, ['error' => $e->getMessage()]);
         }
     }
 
@@ -170,5 +173,46 @@ class ClassScheduleController extends Controller
         } catch (\Exception $e) {
             return $this->json(500, 'Failed to retrieve class schedules', null, ['error' => $e->getMessage()]);
         }
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        $schedules = $request->input('schedules');
+
+        $validator = Validator::make($request->all(), [
+            'schedules' => 'required|array',
+            'schedules.*.id' => 'required|exists:class_schedules,id',
+            'schedules.*.class_id' => 'required|exists:classes,id',
+            'schedules.*.subject_id' => 'required|exists:subjects,id',
+            'schedules.*.teacher_id' => 'required|exists:teachers,id',
+            'schedules.*.day' => 'required|string',
+            'schedules.*.lesson_hours' => 'required|integer',
+            'schedules.*.duration' => 'required|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
+        }
+
+        foreach ($schedules as $scheduleData) {
+            $conflict = ClassSchedule::where('teacher_id', $scheduleData['teacher_id'])
+                ->where('day', $scheduleData['day'])
+                ->where('lesson_hours', $scheduleData['lesson_hours'])
+                ->where('id', '!=', $scheduleData['id'])
+                ->exists();
+
+            if ($conflict) {
+                return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
+            }
+
+            try {
+                $schedule = ClassSchedule::findOrFail($scheduleData['id']);
+                $schedule->update($scheduleData);
+            } catch (\Exception $e) {
+                return $this->json(500, 'Failed to update class schedule', null, ['error' => $e->getMessage()]);
+            }
+        }
+
+        return $this->json(200, 'Class schedules updated successfully', null);
     }
 }

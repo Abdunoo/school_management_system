@@ -19,7 +19,7 @@
     const baseClasses = 'inline-flex items-center px-4 py-1 text-xs font-medium text-white rounded-full';
     switch (props.variant) {
       case 'primary':
-        return `${baseClasses} bg-blue-600`;
+        return `${baseClasses} bg-sky-600`;
       case 'success':
         return `${baseClasses} bg-green-600`;
       case 'secondary':

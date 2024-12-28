@@ -68,8 +68,10 @@ class SubjectController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'teacher_ids' => 'nullable|array',
+            'teacher_ids.*' => 'exists:teachers,id',
         ]);
 
         if ($validator->fails()) {
@@ -78,7 +80,12 @@ class SubjectController extends Controller
 
         try {
             $subject = Subject::findOrFail($id);
-            $subject->update($request->all());
+            $subject->update($request->only(['name', 'description']));
+
+            if ($request->has('teacher_ids')) {
+                $subject->teachers()->sync($request->teacher_ids);
+            }
+
             return $this->json(200, 'Subject updated successfully', $subject);
         } catch (\Exception $e) {
             return $this->json(500, 'Failed to update subject', null, ['error' => $e->getMessage()]);
@@ -89,6 +96,7 @@ class SubjectController extends Controller
     {
         try {
             $subject = Subject::findOrFail($id);
+            $subject->teachers()->detach();
             $subject->delete();
             return $this->json(200, 'Subject deleted successfully', null);
         } catch (\Exception $e) {

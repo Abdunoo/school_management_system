@@ -120,7 +120,8 @@
 
         <FormField placeholder="Wali Kelas" label="Wali Kelas" id="homeroom_teacher_id" type="select"
           v-model="form.homeroom_teacher_id" :options="teacherOptions" required />
-        <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id }}</div>
+        <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id
+          }}</div>
 
         <FormField placeholder="Tidak Aktif" label="Status" id="isActive" type="select" v-model="form.is_active"
           :options="statusOptions" />

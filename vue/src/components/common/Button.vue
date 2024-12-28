@@ -21,7 +21,7 @@ const buttonClass = computed(() => {
   const baseClasses = 'flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-md shadow transition';
   switch (props.variant) {
     case 'primary':
-      return `${baseClasses} bg-blue-600 hover:bg-blue-500 focus:ring-2 focus:ring-blue-500`;
+      return `${baseClasses} bg-sky-600 hover:bg-sky-500 focus:ring-2 focus:ring-sky-500`;
     case 'success':
       return `${baseClasses} bg-green-600 hover:bg-green-500 focus:ring-2 focus:ring-green-500`;
     case 'secondary':

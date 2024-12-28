@@ -9,38 +9,46 @@ class ClassScheduleSeeder extends Seeder
 {
     public function run()
     {
-        // Define the classes, days, and lesson hours
-        $classes = [1, 2, 3, 4]; // Example class IDs
+        $classes = [1, 2, 3, 4];
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        $lessonHours = range(1, 9); // Lesson hours 1-9
+        $lessonHours = range(1, 9);
 
-        // Track assigned schedules to prevent conflicts
         $assignedSchedules = [];
 
-        // Loop through each class, day, and lesson hour
         foreach ($classes as $classId) {
             foreach ($days as $day) {
                 foreach ($lessonHours as $lessonHour) {
-                    $teacherId = rand(1, 10); // Random teacher ID between 1 and 10
+                    $subjectId = rand(1, 16);
 
-                    // Ensure the teacher is not already assigned to another class at the same lesson hour on the same day
-                    while (isset($assignedSchedules["$day-$lessonHour"]) && in_array($teacherId, $assignedSchedules["$day-$lessonHour"])) {
-                        $teacherId = rand(1, 10); // Reassign teacher ID
+                    // Find a teacher with the same subject_id
+                    $teacher = DB::table('teachers')
+                        ->join('subject_teacher', 'teachers.id', '=', 'subject_teacher.teacher_id')
+                        ->where('subject_teacher.subject_id', $subjectId)
+                        ->whereNotIn('teachers.id', $assignedSchedules["$day-$lessonHour"] ?? [])
+                        ->inRandomOrder()
+                        ->select('teachers.id')
+                        ->first();
+
+                    if (!$teacher) {
+                        continue; // Skip if no teacher found with the subject_id
                     }
 
-                    // Assign the schedule
+                    $teacherId = $teacher->id;
+
+                    // Debugging information
+                    echo "Class ID: $classId, Subject ID: $subjectId, Teacher ID: $teacherId, Day: $day, Lesson Hour: $lessonHour\n";
+
                     DB::table('class_schedules')->insert([
                         'class_id' => $classId,
-                        'subject_id' => rand(1, 16), // Random subject ID between 1 and 16
+                        'subject_id' => $subjectId,
                         'teacher_id' => $teacherId,
                         'day' => $day,
                         'lesson_hours' => $lessonHour,
-                        'duration' => rand(1, 2), // Random duration for simplicity, you can adjust this logic
+                        'duration' => rand(1, 2),
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
 
-                    // Track the assigned schedule
                     $assignedSchedules["$day-$lessonHour"][] = $teacherId;
                 }
             }

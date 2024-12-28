@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->unique()->constrained('users');
             $table->string('nip', 20)->unique();
-            $table->foreignId('subject_id')->constrained('subjects');
             $table->string('telepon', 20);
+            $table->enum('gender', ['male', 'female']);
             $table->timestamps();
         });
     }
