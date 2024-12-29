@@ -28,19 +28,13 @@
                     <draggable v-model="column.schedules" :group="{ name: 'schedules' }" item-key="id"
                         class="flex flex-col gap-4 min-h-[200px]" ghost-class="ghost" @end="onDragEnd">
                         <template #item="{ element: schedule }">
-                            <div
-                                :id="`${schedule.id}`"
-                                @click="openModal('edit', schedule)"
-                                class="relative h-36 p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md transition cursor-pointer"
-                            >
+                            <div :id="`${schedule.id}`" @click="openModal('edit', schedule)"
+                                class="relative h-36 p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md transition cursor-pointer">
                                 <!-- Top Right Badge -->
-                                <Badge
-                                class="absolute top-2 right-2"
-                                variant="primary"
-                                >
-                                #{{ schedule.lesson_hours }}
+                                <Badge class="absolute top-2 right-2" variant="primary">
+                                    #{{ schedule.lesson_hours }}
                                 </Badge>
-                                
+
                                 <!-- Card Content -->
                                 <p class="text-base font-medium text-gray-800">{{ schedule.subject.name }}</p>
                                 <p class="text-sm text-gray-500">Guru: {{ schedule.teacher.user.username }}</p>
@@ -60,32 +54,66 @@
         <!-- Add/Edit Schedule Modal -->
         <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
             <form @submit.prevent="handleFormSubmit">
-                <FormField placeholder="Kelas" label="Kelas" id="class_id" type="select" v-model="form.class_id"
-                    :options="classOptions" required />
-                <div v-if="formErrors.class_id" class="mt-1 text-sm text-red-500">{{ formErrors.class_id }}</div>
-
-                <FormField placeholder="Mata Pelajaran" label="Mata Pelajaran" id="subject_id" type="select"
-                    v-model="form.subject_id" :options="subjectOptions" required />
-                <div v-if="formErrors.subject_id" class="mt-1 text-sm text-red-500">{{ formErrors.subject_id }}</div>
-
-                <FormField placeholder="Guru" label="Guru" id="teacher_id" type="select" v-model="form.teacher_id"
-                    :options="teacherOptions" required />
-                <div v-if="formErrors.teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.teacher_id }}</div>
-
-                <FormField placeholder="Hari" label="Hari" id="day" type="select" v-model="form.day"
-                    :options="dayOptions" required />
-                <div v-if="formErrors.day" class="mt-1 text-sm text-red-500">{{ formErrors.day }}</div>
-
-                <FormField placeholder="Jam Pelajaran" label="Jam Pelajaran Ke" id="lesson_hours"
-                    v-model="form.lesson_hours" required />
-                <div v-if="formErrors.lesson_hours" class="mt-1 text-sm text-red-500">{{ formErrors.lesson_hours }}
+                <!-- Kelas (Class) Selection -->
+                <div class="mb-4">
+                    <label for="class_id" class="block text-sm font-medium text-gray-700">Kelas</label>
+                    <v-select id="class_id" class="text-gray-500" v-model="selectedClass"
+                         disabled label="name" required placeholder="Pilih Kelas" />
+                    <div v-if="formErrors.class_id" class="mt-1 text-sm text-red-500">{{ formErrors.class_id }}</div>
                 </div>
 
-                <FormField placeholder="2 Jam Pelajaran" label="Durasi" id="duration" v-model="form.duration"
-                    required />
-                <div v-if="formErrors.duration" class="mt-1 text-sm text-red-500">{{ formErrors.duration }}</div>
+                <!-- Mata Pelajaran (Subject) Selection -->
+                <div class="mb-4">
+                    <label for="subject_id" class="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+                    <v-select id="subject_id" v-model="form.subject_id" :options="subjects" @input="searchSubject($event.target.value)"
+                        :reduce="(option) => option.id" label="name" placeholder="Pilih Mata Pelajaran" required
+                        class="text-gray-500" :open-on-focus="false"
+                        :class="formErrors.subject_id ? 'border-red-500' : 'border-gray-300'"
+                        aria-invalid="formErrors.subject_id ? 'true' : 'false'" />
+                    <div v-if="formErrors.subject_id" class="mt-1 text-sm text-red-500">{{ formErrors.subject_id }}
+                    </div>
+                </div>
+
+                <!-- Guru (Teacher) Selection -->
+                <div class="mb-4">
+                    <label for="teacher_id" class="block text-sm font-medium text-gray-700">Guru</label>
+                    <v-select id="teacher_id" v-model="form.teacher_id" :options="teacherOptions" @input="searchTeacher($event.target.value)"
+                        :reduce="(option) => option.value" label="label" placeholder="Pilih Guru" required
+                        class="text-gray-500" :open-on-focus="false" />
+                    <div v-if="formErrors.teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.teacher_id }}
+                    </div>
+                </div>
+
+                <!-- Hari (Day) Selection -->
+                <div class="mb-4">
+                    <label for="day" class="block text-sm font-medium text-gray-700">Hari</label>
+                    <v-select id="day" class="text-gray-500" v-model="form.day" :options="dayOptions" label="label"
+                    :reduce="(option) => option.value"
+                        required placeholder="Pilih Hari" :open-on-focus="false" />
+                    <div v-if="formErrors.day" class="mt-1 text-sm text-red-500">{{ formErrors.day }}</div>
+                </div>
+
+                <!-- Jam Pelajaran (Lesson Hour) Input -->
+                <div class="mb-4">
+                    <label for="lesson_hours" class="block text-sm font-medium text-gray-700">Jam Pelajaran Ke</label>
+                    <input type="number" id="lesson_hours" v-model="form.lesson_hours" placeholder="1"
+                        class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2 placeholder-gray-400"
+                        required />
+                    <div v-if="formErrors.lesson_hours" class="mt-1 text-sm text-red-500">{{ formErrors.lesson_hours }}
+                    </div>
+                </div>
+
+                <!-- Durasi (Duration) Input -->
+                <div class="mb-4">
+                    <label for="duration" class="block text-sm font-medium text-gray-700">Durasi</label>
+                    <input type="number" id="duration" v-model="form.duration" placeholder="1"
+                        class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2 placeholder-gray-400"
+                        required />
+                    <div v-if="formErrors.duration" class="mt-1 text-sm text-red-500">{{ formErrors.duration }}</div>
+                </div>
             </form>
         </Modal>
+
     </div>
 </template>
 
@@ -94,7 +122,6 @@ import { ref, onMounted, computed, watch } from 'vue';
 import draggable from 'vuedraggable';
 import debounce from 'lodash.debounce';
 import { from } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 import apiClient from '@/helpers/axios';
 import { useModalStore } from '@/stores/modalStore';
 import { useLoadingStore } from '@/stores/loadingStore';
@@ -102,8 +129,8 @@ import { ClassScheduleItem, ClassItem, Subject, Teacher } from '@/types';
 import router from '@/router';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
-import FormField from '@/components/common/FormField.vue';
 import Badge from '@/components/common/Badge.vue';
+import { switchMap } from 'rxjs/operators';
 
 const className = router.currentRoute.value.params.name;
 const pageTitle = ref(`Jadwal Pembelajaran ${className} `);
@@ -118,6 +145,7 @@ const API_ENDPOINTS = {
 
 const loadingStore = useLoadingStore();
 const modalStore = useModalStore();
+const selectedClass = ref<ClassItem | null>(null);
 
 interface Column {
     name: string;
@@ -162,6 +190,9 @@ const fetchClassSchedules = debounce(() => {
             const data = response.data;
             columns.value = mapScheduleToColumns(data.schedules);
             lessonHours.value = data.list_lesson_hours;
+            selectedClass.value = data.schedules[0]?.class;
+            console.log(teachers.value)
+            console.log(teacherOptions.value)
             return [];
         })
     ).subscribe({
@@ -184,13 +215,13 @@ const classes = ref<ClassItem[]>([]);
 const teachers = ref<Teacher[]>([]);
 const subjects = ref<Subject[]>([]);
 const form = ref<ClassScheduleItem>({
-    id: 0,
-    class_id: 0,
-    subject_id: 0,
-    teacher_id: 0,
-    day: '',
-    lesson_hours: 0,
-    duration: 0,
+    id: null,
+    class_id: selectedClass.value?.id,
+    subject_id: null,
+    teacher_id: null,
+    day: null,
+    lesson_hours: null,
+    duration: null,
     class: {},
     subject: {},
     teacher: {},
@@ -225,10 +256,13 @@ const fetchClasses = debounce(() => {
     });
 }, 500);
 
-const fetchTeachers = debounce((subjectId: number) => {
+const searchTeacher = debounce((query) => {
     loadingStore.show();
     from(apiClient.get(API_ENDPOINTS.TEACHERS, {
-        params: { subject_id: subjectId },
+        params: {
+            search: query,
+            per_page: 5,
+        },
     })).pipe(
         switchMap(response => {
             teachers.value = response.data.data;
@@ -244,13 +278,17 @@ const fetchTeachers = debounce((subjectId: number) => {
     });
 }, 500);
 
-const fetchSubjects = debounce(() => {
+const searchSubject = debounce((query) => {
     loadingStore.show();
     from(apiClient.get(API_ENDPOINTS.SUBJECTS, {
-        params: { per_page: 100 },
+        params: { 
+            search: query,
+            per_page: 5 
+        },
     })).pipe(
         switchMap(response => {
             subjects.value = response.data.data;
+
             return [];
         })
     ).subscribe({
@@ -262,32 +300,29 @@ const fetchSubjects = debounce(() => {
         complete: () => loadingStore.hide()
     });
 }, 500);
+const teacherOptions = computed(() => {
+    const seen = new Set(); // Use Set to track unique values
+    return teachers.value
+        .map((teacher) => ({
+            label: teacher.user?.username,
+            value: teacher.id,
+        }))
+        .filter((teacherOption) => {
+            if (seen.has(teacherOption.value)) {
+                return false; // Skip duplicate values
+            }
+            seen.add(teacherOption.value);
+            return true; // Keep unique values
+        });
+});
 
-const classOptions = computed(() =>
-    classes.value.map((classItem: ClassItem) => ({
-        label: classItem.name ?? '',
-        value: classItem.id?.toString() ?? '0',
-    }))
-);
-
-const subjectOptions = computed(() =>
-    subjects.value.map((subject: Subject) => ({
-        label: subject.name ?? '',
-        value: subject.id ?? 0,
-    }))
-);
-
-const teacherOptions = computed(() =>
-    teachers.value.map((teacher: Teacher) => ({
-        label: teacher.user?.username ?? '',
-        value: teacher.id?.toString() ?? '0',
-    }))
-);
 
 const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
     modalTitle.value = action === 'add' ? 'Add Schedule' : 'Edit Schedule';
     showModal.value = true;
     if (action === 'edit' && schedule) {
+        subjects.value = [{ id: schedule.subject_id, name: schedule.subject.name }];
+        teachers.value = [{ id: schedule.teacher_id, user: { username: schedule.teacher.user.username } }];
         form.value = {
             id: schedule.id,
             class_id: schedule.class_id,
@@ -300,7 +335,7 @@ const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
             subject: schedule.subject,
             teacher: schedule.teacher,
         };
-        fetchTeachers(schedule.subject_id ?? 0); // Fetch teachers based on the selected subject
+        // fetchTeachers(schedule.subject_id ?? 0); // Fetch teachers based on the selected subject
     } else {
         form.value = resetForm();
     }
@@ -309,7 +344,7 @@ const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
 
 watch(() => form.value.subject_id, (newSubjectId) => {
     if (newSubjectId) {
-        fetchTeachers(newSubjectId); // Fetch teachers when a new subject is selected
+        // fetchTeachers(newSubjectId); // Fetch teachers when a new subject is selected
     }
 });
 
@@ -359,13 +394,13 @@ const onDragEnd = (event: any) => {
 };
 
 const resetForm = () => ({
-    id: 0,
-    class_id: 0,
-    subject_id: 0,
-    teacher_id: 0,
-    day: '',
-    lesson_hours: 0,
-    duration: 0,
+    id: null,
+    class_id: selectedClass.value?.id,
+    subject_id: null,
+    teacher_id: null,
+    day: null,
+    lesson_hours: null,
+    duration: null,
     class: {},
     subject: {},
     teacher: {},
@@ -421,7 +456,5 @@ const saveAllSchedules = debounce(async () => {
 
 onMounted(() => {
     fetchClassSchedules();
-    fetchClasses();
-    fetchSubjects();
 });
 </script>

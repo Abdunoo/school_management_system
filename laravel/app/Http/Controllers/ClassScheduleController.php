@@ -120,6 +120,7 @@ class ClassScheduleController extends Controller
         $conflict = ClassSchedule::where('teacher_id', $request->teacher_id)
             ->where('day', $request->day)
             ->where('lesson_hours', $request->lesson_hours)
+            ->where('id', '!=', $id)
             ->exists();
 
         if ($conflict) {

@@ -278,7 +278,7 @@ const resetForm = (): Teacher => ({
 
 // Form submission
 const handleFormSubmit = async (): Promise<void> => {
-    formErrors.value = { nip: '', subjects: '', telepon: '', user: '' };
+    formErrors.value = {};
 
     // Validation
     if (!form.value?.nip) formErrors.value.nip = 'NIP harus diisi';
@@ -291,7 +291,6 @@ const handleFormSubmit = async (): Promise<void> => {
     if (form.value?.subjects) {
         form.value.subject_ids = form.value.subjects.map((subject) => subject.id);
     }
-
     const dataToSend = {
         nip: form.value?.nip,
         subject_ids: form.value?.subject_ids,

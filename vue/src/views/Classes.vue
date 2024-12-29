@@ -28,7 +28,7 @@
       <div v-if="classes.length === 0" class="text-center py-4 text-secondary">No classes found.</div>
 
       <!-- Iterasi untuk setiap kelas -->
-      <div v-for="classItem in classes" :key="classItem.id"
+      <div v-for="(classItem, index) in classes" :key="index"
         class="relative bg-gray-50 rounded-lg p-4 shadow hover:bg-gray-100 transition">
         <!-- Status di pojok kanan atas -->
         <div class="absolute top-2 right-2">
@@ -86,7 +86,7 @@
           <tr v-if="classes.length === 0">
             <td colspan="5" class="text-center py-4 text-secondary">No classes found.</td>
           </tr>
-          <tr v-for="classItem in classes" :key="classItem.id"
+          <tr v-for="(classItem, index) in classes" :key="index"
             class="hover:bg-gray-100 transition grid grid-cols-5 items-center">
             <td class="px-4 py-3 text-secondary">{{ classItem.name }}</td>
             <td class="px-4 py-3 text-secondary">{{ classItem.academic_year }}</td>
@@ -112,14 +112,14 @@
         <!-- Nama Kelas -->
         <div class="space-y-2">
           <label for="name" class="block text-sm font-medium text-secondary">Nama Kelas</label>
-          <FormField id="name" placeholder="Masukkan Nama Kelas" v-model="form.name" required
+          <FormField id="name" placeholder="Masukkan Nama Kelas" v-model="form?.name" required
             :errorMessage="formErrors.name" class="w-full" />
         </div>
 
         <!-- Tahun Akademik -->
         <div class="space-y-2">
           <label for="academic_year" class="block text-sm font-medium text-secondary">Tahun Akademik</label>
-          <v-select id="academic_year" v-model="form.academic_year" :options="academicYearOptions" label="label"
+          <v-select id="academic_year" v-model="form?.academic_year" :options="academicYearOptions" label="label"
             placeholder="Pilih Tahun Ajar" required class="text-gray-500" />
             <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
         </div>
@@ -127,7 +127,7 @@
         <!-- Wali Kelas -->
         <div class="space-y-2">
           <label for="homeroom_teacher_id" class="block text-sm font-medium text-secondary">Wali Kelas</label>
-          <v-select id="homeroom_teacher_id" v-model="form.homeroom_teacher_id" :options="teacherOptions"
+          <v-select id="homeroom_teacher_id" v-model="form?.homeroom_teacher_id" :options="teacherOptions"
             :reduce="teacher => teacher.value" placeholder="Pilih Wali Kelas" required @search="searchTeacher" class="text-gray-500" />
             <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id }}</div>
         </div>
@@ -135,7 +135,7 @@
         <!-- Status -->
         <div class="space-y-2">
           <label for="is_active" class="block text-sm font-medium text-secondary">Status</label>
-          <v-select id="is_active" v-model="form.is_active" :options="statusOptions" label="label"
+          <v-select id="is_active" v-model="form?.is_active" :options="statusOptions" label="label"
             :reduce="status => status.value" placeholder="Pilih Status" required class="text-gray-500" />
             <div v-if="formErrors.is_active" class="mt-1 text-sm text-red-500">{{ formErrors.is_active }}</div>
         </div>
@@ -286,8 +286,8 @@ const handleFormSubmit = debounce(async (): Promise<void> => {
   if (Object.keys(formErrors.value).length > 0) return;
 
   loadingStore.show();
-  const endpoint = form.value.id ? `${API_ENDPOINTS.CLASSES}/${form.value.id}` : API_ENDPOINTS.CLASSES;
-  const method = form.value.id ? 'put' : 'post';
+  const endpoint = form.value?.id ? `${API_ENDPOINTS.CLASSES}/${form.value.id}` : API_ENDPOINTS.CLASSES;
+  const method = form.value?.id ? 'put' : 'post';
 
   try {
     await apiClient[method](endpoint, form.value);
