@@ -16,7 +16,7 @@ export interface Teacher {
   gender?: string;
   created_at?: string;
   updated_at?: string;
-  user?: User;
+  user?: User | null;
   subjects?: Subject[];
   subject_ids?: number[];
 }

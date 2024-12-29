@@ -8,9 +8,7 @@
                     <label for="perPage" class="text-sm font-medium text-secondary">Show</label>
                     <select id="perPage" v-model="perPage"
                         class="border w-16 border-gray-300 bg-white text-secondary rounded-md text-sm px-3 py-2 focus:ring-primary focus:border-primary">
-                        <option v-for="option in perPageOptions" :key="option" :value="option">
-                            {{ option }}
-                        </option>
+                        <option v-for="option in perPageOptions" :key="option" :value="option">{{ option }}</option>
                     </select>
                     <Button variant="primary" @click="toggleModal('add')">Tambah Guru</Button>
                 </div>
@@ -30,38 +28,18 @@
             <table class="min-w-full table-auto text-sm text-left">
                 <thead>
                     <tr class="bg-gray-100 grid grid-cols-7 rounded-xl">
-                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('nip')">
-                            NIP
-                            <span v-if="sortField === 'nip'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                        <th v-for="header in tableHeaders" :key="header.field"
+                            class="px-4 py-3 text-secondary cursor-pointer" @click="sort(header.field)">
+                            {{ header.label }}
+                            <span v-if="sortField === header.field">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
                         </th>
-                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('subjects')">
-                            Mapel
-                            <span v-if="sortField === 'subjects'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('telepon')">
-                            Telepon
-                            <span v-if="sortField === 'telepon'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('username')">
-                            Username
-                            <span v-if="sortField === 'username'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('email')">
-                            Email
-                            <span v-if="sortField === 'email'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th class="px-4 py-3 text-secondary cursor-pointer" @click="sort('is_active')">
-                            Status
-                            <span v-if="sortField === 'is_active'">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
-                        </th>
-                        <th class="px-4 py-3 text-secondary">Actions</th>
                     </tr>
                 </thead>
             </table>
         </div>
-        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
-            <table class="min-w-full table-auto text-sm text-left ">
-                <tbody class="divide-y divide-gray-200 ">
+        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">            
+            <table class="min-w-full table-auto text-sm text-left">
+                <tbody class="divide-y divide-gray-200">
                     <tr v-if="teachers.length === 0">
                         <td colspan="7" class="text-center py-4 text-secondary">No teachers found.</td>
                     </tr>
@@ -70,18 +48,16 @@
                         <td class="px-4 py-3 text-secondary">{{ teacher.nip }}</td>
                         <td class="px-4 py-3 text-secondary">
                             <div class="flex flex-wrap gap-1">
-                                <Badge v-for="subject in teacher.subjects" :key="subject.id" variant="primary">
-                                    {{ subject.name }}
-                                </Badge>
+                                <Badge v-for="subject in teacher.subjects" :key="subject.id" variant="primary">{{
+                                    subject.name }}</Badge>
                             </div>
                         </td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.telepon }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user?.username }}</td>
                         <td class="px-4 py-3 text-secondary">{{ teacher.user?.email }}</td>
                         <td class="px-4 py-3 text-secondary">
-                            <Badge :variant="teacher.user?.is_active ? 'success' : 'danger'">{{
-                                teacher.user?.is_active
-                                    ? 'Active' : 'Inactive' }}</Badge>
+                            <Badge :variant="teacher.user?.is_active ? 'success' : 'danger'">{{ teacher.user?.is_active
+                                ? 'Active' : 'Inactive' }}</Badge>
                         </td>
                         <td class="px-4 py-3 text-secondary">
                             <Button variant="warning" @click="toggleModal('edit', teacher)">Edit</Button>
@@ -98,32 +74,24 @@
             </div>
             <div v-for="teacher in teachers" :key="teacher.id"
                 class="relative p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
-                <!-- Status on Top Right -->
                 <div class="absolute top-4 right-4">
                     <Badge :variant="teacher.user?.is_active ? 'success' : 'danger'">
                         {{ teacher.user?.is_active ? 'Aktif' : 'Tidak Aktif' }}
                     </Badge>
                 </div>
-
-                <!-- Content -->
                 <h3 class="text-lg font-bold text-secondary">{{ teacher.nip }}</h3>
                 <div class="text-sm text-secondary mt-2">
                     <strong>Mapel:</strong>
                     <div class="flex flex-wrap gap-1">
-                        <Badge v-for="subject in teacher.subjects" :key="subject.id" variant="primary">
-                            {{ subject.name }}
-                        </Badge>
+                        <Badge v-for="subject in teacher.subjects" :key="subject.id" variant="primary">{{ subject.name
+                            }}</Badge>
                     </div>
                 </div>
                 <p class="text-sm text-secondary"><strong>Telepon:</strong> {{ teacher.telepon }}</p>
                 <p class="text-sm text-secondary"><strong>Username:</strong> {{ teacher.user?.username }}</p>
                 <p class="text-sm text-secondary"><strong>Email:</strong> {{ teacher.user?.email }}</p>
-
-                <!-- Button on Bottom Right -->
                 <div class="flex justify-end mt-4">
-                    <Button variant="warning" @click="toggleModal('edit', teacher)">
-                        Edit
-                    </Button>
+                    <Button variant="warning" @click="toggleModal('edit', teacher)">Edit</Button>
                 </div>
             </div>
         </div>
@@ -133,43 +101,23 @@
         <!-- Add/Edit Teacher Modal -->
         <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
             <form @submit.prevent="handleFormSubmit">
-                <FormField placeholder="T-001" label="NIP" id="nip" v-model="form.nip" required />
-                <div v-if="formErrors.nip" class="mt-1 text-sm text-red-500">{{ formErrors.nip }}</div>
-
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <Badge v-for="subject in form.subjects" :key="subject.id" variant="primary"
-                        class="flex items-center space-x-2">
-                        <span>{{ subject.name }}</span>
-                        <Button type="button" @click="removeSubject(subject.id!)"
-                            class=" rounded-full w-5 h-5 flex items-center justify-center">
-                            &times;
-                        </Button>
-                    </Badge>
+                <div>
+                    <FormField placeholder="T-001" label="NIP" id="nip" v-model="form.nip" required />
+                    <div v-if="formErrors.nip" class="mt-1 text-sm text-red-500">{{ formErrors.nip }}</div>
                 </div>
-
-                <!-- Custom Select with Scrollable Options -->
-                <div class="relative mb-4">
+                <div class="mb-4">
                     <label for="mapel" class="block mb-2 text-sm font-medium text-gray-700">Mata Pelajaran</label>
-                    <div class="border border-gray-300 rounded-md max-h-40 overflow-y-auto p-2">
-                        <div v-for="(option, index) in subjects" :key="index"
-                            class="flex justify-between items-center py-1 hover:bg-gray-100 cursor-pointer">
-                            <span class="text-gray-800">{{ option.name }}</span>
-                            <Button type="button" @click="addSubject(option)"
-                                class="text-sm bg-primary hover:bg-blue-600 text-white px-2 py-1 rounded"
-                                :disabled="isSubjectSelected(option)">
-                                +
-                            </Button>
-                        </div>
-                    </div>
+                    <v-select class="text-gray-500" v-model="form.subjects" :options="subjects" label="name" multiple
+                        placeholder="Pilih Mapel"   @input="searchSubjects($event.target.value)"/>
+                    <div v-if="formErrors.subjects" class="mt-1 text-sm text-red-500">{{ formErrors.subjects }}</div>
                 </div>
-                <div v-if="formErrors.subjects" class="mt-1 text-sm text-red-500">{{ formErrors.subjects }}</div>
-
-                <FormField placeholder="08***" label="Telepon" id="telepon" v-model="form.telepon" required />
-                <div v-if="formErrors.telepon" class="mt-1 text-sm text-red-500">{{ formErrors.telepon }}</div>
-
-                <FormField id="user" label="User " type="select" :options="userOptions" v-model="form.user_id"
-                    placeholder="User " />
-                <div v-if="formErrors.user_id" class="mt-1 text-sm text-red-500">{{ formErrors.user_id }}</div>
+                <div>
+                    <FormField placeholder="08***" label="Telepon" id="telepon" v-model="form.telepon" required />
+                    <div v-if="formErrors.telepon" class="mt-1 text-sm text-red-500">{{ formErrors.telepon }}</div>
+                </div>
+                <v-select class="text-gray-500" v-model="form.user" :options="users" label="username"
+                    placeholder="Pilih User" @input="searchUsers($event.target.value)" />
+                <div v-if="formErrors.user" class="mt-1 text-sm text-red-500">{{ formErrors.user }}</div>
             </form>
         </Modal>
     </div>
@@ -211,13 +159,7 @@ const form = ref<Teacher>({
     nip: '',
     telepon: '',
     gender: '',
-    user: {
-        id: 0,
-        username: '',
-        email: '',
-        role: 'teacher',
-        is_active: 1,
-    },
+    user: null,
     subjects: [],
     subject_ids: [],
 });
@@ -246,50 +188,45 @@ const fetchTeachers = debounce(async () => {
     loadingStore.hide();
 }, 500);
 
-const fetchSubjects = debounce(async () => {
+const searchSubjects = debounce(async (query) => {
+    console.log('searching subjects', query);
     loadingStore.show();
     try {
         const response = await apiClient.get('/api/subjects', {
             params: {
-                per_page: 100,
+                search: query,
+                per_page: 5,
                 page: 1,
             },
         });
         subjects.value = response.data.data;
-    } catch (error: any) {
+    } catch (error) {
         console.error(error);
         modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
 }, 500);
 
-const fetchUsers = debounce(async () => {
+const searchUsers = debounce(async (query) => {
     loadingStore.show();
     try {
         const response = await apiClient.get('/api/users', {
             params: {
+                per_page: 5,
+                search: query,
                 role: 'teacher',
             },
         });
         users.value = response.data.data;
-    } catch (error: any) {
+    } catch (error) {
         console.error(error);
         modalStore.showError('Error', error.response.data.message);
     }
     loadingStore.hide();
 }, 500);
 
-const userOptions = computed(() =>
-    users.value.map((user) => ({
-        label: user.username ?? '',
-        value: user.id ?? 0,
-    }))
-);
-
 onMounted(() => {
     fetchTeachers();
-    fetchSubjects();
-    fetchUsers();
 });
 
 watch([perPage, currentPage, searchQuery], () => {
@@ -297,21 +234,7 @@ watch([perPage, currentPage, searchQuery], () => {
 });
 
 const resetModal = () => {
-    form.value = {
-        id: 0,
-        user_id: 0,
-        nip: '',
-        telepon: '',
-        gender: '',
-        user: {
-            id: 0,
-            username: '',
-            email: '',
-            role: 'teacher',
-            is_active: 1,
-        },
-        subjects: []
-    };
+    form.value = resetForm();
     showModal.value = false;
 };
 
@@ -319,7 +242,6 @@ const toggleModal = (type: 'add' | 'edit', teacher?: Teacher) => {
     modalTitle.value = type === 'edit' ? 'Edit Teacher' : 'Add Teacher';
     form.value = type === 'edit' ? { ...teacher } as Teacher : resetForm();
     showModal.value = true;
-    console.log('Form:', form.value);
 };
 
 const resetForm = (): Teacher => ({
@@ -328,34 +250,21 @@ const resetForm = (): Teacher => ({
     nip: '',
     telepon: '',
     gender: '',
-    user: {
-        id: 0,
-        username: '',
-        email: '',
-        role: 'teacher',
-        is_active: 1,
-    },
+    user: null,
     subjects: []
 });
 
 const handleFormSubmit = async () => {
-    console.log('Form submitted:', form.value);
     formErrors.value = {};
-
     if (!form.value.nip) formErrors.value.nip = 'NIP harus diisi';
     if (!(form.value.subjects ?? []).length) formErrors.value.subjects = 'Mapel harus diisi';
     if (!form.value.telepon) formErrors.value.telepon = 'Telepon harus diisi';
-    if (!form.value.user_id) formErrors.value.user_id = 'User  harus diisi';
+    if (!form.value.user) formErrors.value.user = 'User  harus diisi';
 
-    if (Object.keys(formErrors.value).length > 0) {
-        return;
-    }
+    if (Object.keys(formErrors.value).length > 0) return;
 
-    form.value.subject_ids = []; // Clear the array
-
-    form.value.subjects.forEach(subject => {
-        form.value.subject_ids.push(subject.id);
-    });
+    form.value.subject_ids = form.value.subjects.map(subject => subject.id);
+    form.value.user_id = form.value.user.id;
 
     const dataToSend = {
         nip: form.value.nip,
@@ -379,32 +288,19 @@ const handleFormSubmit = async () => {
     loadingStore.hide();
 };
 
-const addSubject = (selectedSubject: Subject) => {
-    if (!(form.value.subjects ?? []).some(s => s.id === selectedSubject.id)) {
-        if (!form.value.subjects) {
-            form.value.subjects = [];
-        }
-        form.value.subjects.push(selectedSubject);
-    }
-};
-
-const removeSubject = (subjectId: number) => {
-    if (form.value.subjects) {
-        form.value.subjects = form.value.subjects.filter(subject => subject.id !== subjectId);
-    }
-};
-
-const isSubjectSelected = (subject: Subject) => {
-    return (form.value.subjects ?? []).some(s => s.id === subject.id);
-};
-
 const sort = (field: string) => {
-    if (sortField.value === field) {
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-    } else {
-        sortField.value = field;
-        sortOrder.value = 'asc';
-    }
+    sortOrder.value = sortField.value === field ? (sortOrder.value === 'asc' ? 'desc' : 'asc') : 'asc';
+    sortField.value = field;
     fetchTeachers();
 };
+
+const tableHeaders = ref([
+    { field: 'nip', label: 'NIP' },
+    { field: 'subjects', label: 'Mata Pelajaran' },
+    { field: 'telepon', label: 'Telepon' },
+    { field: 'username', label: 'Username' },
+    { field: 'email', label: 'Email' },
+    { field: 'is_active', label: 'Status' },
+    { field: 'actions', label: 'Actions' }
+]);
 </script>
