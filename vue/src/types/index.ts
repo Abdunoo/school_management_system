@@ -1,78 +1,93 @@
 export interface User {
-  id?: number;
-  username?: string; // Added username property
-  email?: string;
-  role?: 'admin' | 'teacher' | 'student';
-  is_active?: number; // Added is_active property
-  created_at?: Date | String; // Added created_at property
-  updated_at?: Date | String; // Added updated_at property
+  id?: number | null; 
+  username?: string | null; 
+  email?: string | null;
+  role?: 'admin' | 'teacher' | 'student' | null;
+  is_active?: number | null; 
+  created_at?: Date | string | null; 
+  updated_at?: Date | string | null; 
 }
 
 export interface Teacher {
-  id?: number;
-  user_id?: number;
-  nip?: string;
-  telepon?: string;
-  gender?: string;
-  created_at?: string;
-  updated_at?: string;
-  user?: User | null;
-  subjects?: Subject[];
-  subject_ids?: number[];
+  id?: number | null; 
+  user_id?: number | null; 
+  nip?: string | null;
+  telepon?: string | null;
+  gender?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  user?: User | null; 
+  subjects?: Subject[] | null; 
+  subject_ids?: number[] | null; 
 }
 
 export interface Student {
-  id: number;
-  name: string;
-  grade: string;
-  class: string;
-  // Add more student properties as needed
+  id?: number | null; 
+  name?: string | null; 
+  grade?: string | null; 
+  class?: string | null; 
 }
 
 export interface ClassItem {
-  id?: number;
-  name?: string;
-  academic_year?: string;
-  homeroom_teacher_id?: number;
-  is_active?: number;
-  created_at?: Date | String;
-  updated_at?: Date | String;
-  homeroom_teacher?: Teacher;
+  id?: number | null; 
+  name?: string | null; 
+  academic_year?: string | null; 
+  homeroom_teacher_id?: number | null; 
+  is_active?: number | null; 
+  created_at?: Date | string | null; 
+  updated_at?: Date | string | null; 
+  homeroom_teacher?: Teacher | null; 
 }
 
 export interface ActivityLog {
-  id: number;
-  type: string;
-  description: string;
-  timestamp: Date | String;
-  // Add more activity log properties as needed
+  id?: number | null; 
+  type?: string | null; 
+  description?: string | null; 
+  timestamp?: Date | string | null; 
 }
 
 export interface Subject {
-  id?: number;
-  name?: string;
-  created_at?: Date | String;
-  updated_at?: Date | String;
+  id?: number | null; 
+  name?: string | null; 
+  created_at?: Date | string | null; 
+  updated_at?: Date | string | null; 
 }
 
 export interface ClassScheduleItem {
-  id?: number;
-  class_id?: number;
-  subject_id?: number;
-  teacher_id?: number;
-  day?: string;
-  lesson_hours?: number;
-  duration?: number;
-  class?: ClassItem;
-  subject?: Subject;
-  teacher?: Teacher;
+  id?: number | null; 
+  class_id?: number | null; 
+  subject_id?: number | null; 
+  teacher_id?: number | null; 
+  day?: string | null; 
+  lesson_hours?: number | null; 
+  duration?: number | null; 
+  class?: ClassItem | null; 
+  subject?: Subject | null; 
+  teacher?: Teacher | null; 
 }
 
 export interface ClassSchedule {
-  id: number;
-  name: string;
-  academic_year: string;
-  homeroom_teacher: String;
-  total_duration: number;
-  total_subjects: number;
+  id?: number | null; 
+  name?: string | null; 
+  academic_year?: string | null; 
+  homeroom_teacher?: string | null; 
+  total_duration?: number | null; 
+  total_subjects?: number | null; 
+}
+
+export interface AcademicYearOption {
+  label: string; 
+  value: string; 
+}
+
+export interface FormErrors {
+  name?: string; 
+  academic_year?: string; 
+  homeroom_teacher_id?: string; 
+  [key: string]: string | undefined; 
+}
+
+export interface ApiResponse<T> {
+  data: T[];
+  total: number;
 }

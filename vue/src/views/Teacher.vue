@@ -37,7 +37,7 @@
                 </thead>
             </table>
         </div>
-        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">            
+        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
             <table class="min-w-full table-auto text-sm text-left">
                 <tbody class="divide-y divide-gray-200">
                     <tr v-if="teachers.length === 0">
@@ -100,24 +100,35 @@
 
         <!-- Add/Edit Teacher Modal -->
         <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
-            <form @submit.prevent="handleFormSubmit">
-                <div>
+            <form @submit.prevent="handleFormSubmit" class="space-y-6">
+                <!-- NIP -->
+                <div class="space-y-2">
                     <FormField placeholder="T-001" label="NIP" id="nip" v-model="form.nip" required />
                     <div v-if="formErrors.nip" class="mt-1 text-sm text-red-500">{{ formErrors.nip }}</div>
                 </div>
-                <div class="mb-4">
-                    <label for="mapel" class="block mb-2 text-sm font-medium text-gray-700">Mata Pelajaran</label>
-                    <v-select class="text-gray-500" v-model="form.subjects" :options="subjects" label="name" multiple
-                        placeholder="Pilih Mapel"   @input="searchSubjects($event.target.value)"/>
+
+                <!-- Mata Pelajaran -->
+                <div class="space-y-2">
+                    <label for="subjects" class="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+                    <v-select id="subjects" class="text-gray-500" v-model="form.subjects" :options="subjects"
+                        label="name" multiple required placeholder="Pilih Mapel"
+                        @input="searchSubjects($event.target.value)" />
                     <div v-if="formErrors.subjects" class="mt-1 text-sm text-red-500">{{ formErrors.subjects }}</div>
                 </div>
-                <div>
+
+                <!-- Telepon -->
+                <div class="space-y-2">
                     <FormField placeholder="08***" label="Telepon" id="telepon" v-model="form.telepon" required />
                     <div v-if="formErrors.telepon" class="mt-1 text-sm text-red-500">{{ formErrors.telepon }}</div>
                 </div>
-                <v-select class="text-gray-500" v-model="form.user" :options="users" label="username"
-                    placeholder="Pilih User" @input="searchUsers($event.target.value)" />
-                <div v-if="formErrors.user" class="mt-1 text-sm text-red-500">{{ formErrors.user }}</div>
+
+                <!-- Pilih User -->
+                <div class="space-y-2">
+                    <label for="user" class="block text-sm font-medium text-gray-700">Pilih User</label>
+                    <v-select id="user" class="text-gray-500" v-model="form.user" :options="users" label="username"
+                        required placeholder="Pilih User" @input="searchUsers($event.target.value)" />
+                    <div v-if="formErrors.user" class="mt-1 text-sm text-red-500">{{ formErrors.user }}</div>
+                </div>
             </form>
         </Modal>
     </div>
@@ -130,47 +141,53 @@ import Badge from '@/components/common/Badge.vue';
 import Modal from '@/components/common/Modal.vue';
 import FormField from '@/components/common/FormField.vue';
 import Pagination from '@/components/common/Pagination.vue';
-import { Subject, Teacher, User } from '@/types';
+import { Subject, Teacher, User, ApiResponse, FormErrors } from '@/types';
 import apiClient from '@/helpers/axios';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useModalStore } from '@/stores/modalStore';
 
+// Stores
 const loadingStore = useLoadingStore();
 const modalStore = useModalStore();
 
-const pageTitle = ref('Daftar Guru');
+// Page title
+const pageTitle = ref<string>('Daftar Guru');
+
+// Data refs
 const teachers = ref<Teacher[]>([]);
 const subjects = ref<Subject[]>([]);
 const users = ref<User[]>([]);
+
+// Pagination and search
 const perPageOptions = [10, 20, 30];
-const perPage = ref(perPageOptions[0]);
-const currentPage = ref(1);
-const searchQuery = ref('');
-const totalRecords = ref(0);
+const perPage = ref<number>(perPageOptions[0]);
+const currentPage = ref<number>(1);
+const searchQuery = ref<string>('');
+const totalRecords = ref<number>(0);
 const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value));
-const showModal = ref(false);
-const modalTitle = ref('');
-const formErrors = ref<{ [key: string]: string }>({});
-const form = ref<Teacher>({
-    id: 0,
-    user_id: 0,
+
+// Modal state and form
+const showModal = ref<boolean>(false);
+const modalTitle = ref<string>('');
+const formErrors = ref<FormErrors>({
     nip: '',
+    subjects: '',
     telepon: '',
-    gender: '',
-    user: null,
-    subjects: [],
-    subject_ids: [],
+    user: ''
 });
+const form = ref<Teacher | null>(null);
 
-const sortField = ref('nip');
-const sortOrder = ref('asc');
+// Sorting
+const sortField = ref<string>('nip');
+const sortOrder = ref<'asc' | 'desc'>('asc');
 
-const fetchTeachers = debounce(async () => {
+// Fetch teachers with debounce
+const fetchTeachers = debounce(async (): Promise<void> => {
     loadingStore.show();
     try {
-        const response = await apiClient.get('/api/teachers', {
+        const response = await apiClient.get<ApiResponse<Teacher>>('/api/teachers', {
             params: {
                 per_page: perPage.value,
                 page: currentPage.value,
@@ -183,16 +200,17 @@ const fetchTeachers = debounce(async () => {
         totalRecords.value = response.data.total;
     } catch (error: any) {
         console.error(error);
-        modalStore.showError('Error', error.response.data.message);
+        modalStore.showError('Error', error.response?.data?.message || 'Failed to fetch teachers.');
+    } finally {
+        loadingStore.hide();
     }
-    loadingStore.hide();
 }, 500);
 
-const searchSubjects = debounce(async (query) => {
-    console.log('searching subjects', query);
+// Search subjects
+const searchSubjects = debounce(async (query: string): Promise<void> => {
     loadingStore.show();
     try {
-        const response = await apiClient.get('/api/subjects', {
+        const response = await apiClient.get<ApiResponse<Subject>>('/api/subjects', {
             params: {
                 search: query,
                 per_page: 5,
@@ -200,17 +218,19 @@ const searchSubjects = debounce(async (query) => {
             },
         });
         subjects.value = response.data.data;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
-        modalStore.showError('Error', error.response.data.message);
+        modalStore.showError('Error', error.response?.data?.message || 'Failed to fetch subjects.');
+    } finally {
+        loadingStore.hide();
     }
-    loadingStore.hide();
 }, 500);
 
-const searchUsers = debounce(async (query) => {
+// Search users
+const searchUsers = debounce(async (query: string): Promise<void> => {
     loadingStore.show();
     try {
-        const response = await apiClient.get('/api/users', {
+        const response = await apiClient.get<ApiResponse<User>>('/api/users', {
             params: {
                 per_page: 5,
                 search: query,
@@ -218,32 +238,33 @@ const searchUsers = debounce(async (query) => {
             },
         });
         users.value = response.data.data;
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
-        modalStore.showError('Error', error.response.data.message);
+        modalStore.showError('Error', error.response?.data?.message || 'Failed to fetch users.');
+    } finally {
+        loadingStore.hide();
     }
-    loadingStore.hide();
 }, 500);
 
-onMounted(() => {
-    fetchTeachers();
-});
+// Lifecycle hooks
+onMounted(fetchTeachers);
 
-watch([perPage, currentPage, searchQuery], () => {
-    fetchTeachers();
-});
+watch([perPage, currentPage, searchQuery], fetchTeachers);
 
-const resetModal = () => {
+// Reset modal
+const resetModal = (): void => {
     form.value = resetForm();
     showModal.value = false;
 };
 
-const toggleModal = (type: 'add' | 'edit', teacher?: Teacher) => {
+// Toggle modal
+const toggleModal = (type: 'add' | 'edit', teacher?: Teacher): void => {
     modalTitle.value = type === 'edit' ? 'Edit Teacher' : 'Add Teacher';
-    form.value = type === 'edit' ? { ...teacher } as Teacher : resetForm();
+    form.value = type === 'edit' ? { ...teacher } : resetForm();
     showModal.value = true;
 };
 
+// Reset form
 const resetForm = (): Teacher => ({
     id: 0,
     user_id: 0,
@@ -251,31 +272,36 @@ const resetForm = (): Teacher => ({
     telepon: '',
     gender: '',
     user: null,
-    subjects: []
+    subjects: [],
+    subject_ids: [],
 });
 
-const handleFormSubmit = async () => {
-    formErrors.value = {};
-    if (!form.value.nip) formErrors.value.nip = 'NIP harus diisi';
-    if (!(form.value.subjects ?? []).length) formErrors.value.subjects = 'Mapel harus diisi';
-    if (!form.value.telepon) formErrors.value.telepon = 'Telepon harus diisi';
-    if (!form.value.user) formErrors.value.user = 'User  harus diisi';
+// Form submission
+const handleFormSubmit = async (): Promise<void> => {
+    formErrors.value = { nip: '', subjects: '', telepon: '', user: '' };
+
+    // Validation
+    if (!form.value?.nip) formErrors.value.nip = 'NIP harus diisi';
+    if (!(form.value?.subjects?.length)) formErrors.value.subjects = 'Mapel harus diisi';
+    if (!form.value?.telepon) formErrors.value.telepon = 'Telepon harus diisi';
+    if (!form.value?.user) formErrors.value.user = 'User harus diisi';
 
     if (Object.keys(formErrors.value).length > 0) return;
 
-    form.value.subject_ids = form.value.subjects.map(subject => subject.id);
-    form.value.user_id = form.value.user.id;
+    if (form.value?.subjects) {
+        form.value.subject_ids = form.value.subjects.map((subject) => subject.id);
+    }
 
     const dataToSend = {
-        nip: form.value.nip,
-        subject_ids: form.value.subject_ids,
-        telepon: form.value.telepon,
-        user_id: form.value.user_id
+        nip: form.value?.nip,
+        subject_ids: form.value?.subject_ids,
+        telepon: form.value?.telepon,
+        user_id: form.value?.user_id,
     };
 
     loadingStore.show();
-    const endpoint = form.value.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
-    const method = form.value.id ? 'put' : 'post';
+    const endpoint = form.value?.id ? `/api/teachers/${form.value.id}` : '/api/teachers';
+    const method: 'post' | 'put' = form.value?.id ? 'put' : 'post';
 
     try {
         await apiClient[method](endpoint, dataToSend);
@@ -283,24 +309,28 @@ const handleFormSubmit = async () => {
         fetchTeachers();
     } catch (error: any) {
         console.error('Failed to submit form:', error);
-        modalStore.showError('Error', error.response.data.message);
+        modalStore.showError('Error', error.response?.data?.message || 'Failed to submit form.');
+    } finally {
+        loadingStore.hide();
     }
-    loadingStore.hide();
 };
 
-const sort = (field: string) => {
+// Sorting
+const sort = (field: string): void => {
     sortOrder.value = sortField.value === field ? (sortOrder.value === 'asc' ? 'desc' : 'asc') : 'asc';
     sortField.value = field;
     fetchTeachers();
 };
 
-const tableHeaders = ref([
+// Table headers
+const tableHeaders = ref<Array<{ field: string; label: string }>>([
     { field: 'nip', label: 'NIP' },
     { field: 'subjects', label: 'Mata Pelajaran' },
     { field: 'telepon', label: 'Telepon' },
     { field: 'username', label: 'Username' },
     { field: 'email', label: 'Email' },
     { field: 'is_active', label: 'Status' },
-    { field: 'actions', label: 'Actions' }
+    { field: 'actions', label: 'Actions' },
 ]);
+
 </script>

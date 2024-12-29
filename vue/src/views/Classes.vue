@@ -105,26 +105,40 @@
       </table>
     </div>
 
-    <!-- Pagination -->
     <Pagination :current-page="currentPage" :total-pages="totalPages" @page-changed="currentPage = $event" />
 
-    <!-- Add/Edit Class Modal -->
     <Modal :visible="showModal" :title="modalTitle" @close="resetModal" @confirm="handleFormSubmit">
-      <form @submit.prevent="handleFormSubmit">
-        <FormField placeholder="Nama Kelas" label="Nama Kelas" id="name" v-model="form.name" required />
-        <div v-if="formErrors.name" class="mt-1 text-sm text-red-500">{{ formErrors.name }}</div>
+      <form @submit.prevent="handleFormSubmit" class="space-y-6">
+        <!-- Nama Kelas -->
+        <div class="space-y-2">
+          <label for="name" class="block text-sm font-medium text-secondary">Nama Kelas</label>
+          <FormField id="name" placeholder="Masukkan Nama Kelas" v-model="form.name" required
+            :errorMessage="formErrors.name" class="w-full" />
+        </div>
 
-        <FormField placeholder="Tahun Ajaran" label="Tahun Ajaran" id="academic_year" type="select"
-          v-model="form.academic_year" :options="academicYearOptions" required />
-        <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
+        <!-- Tahun Akademik -->
+        <div class="space-y-2">
+          <label for="academic_year" class="block text-sm font-medium text-secondary">Tahun Akademik</label>
+          <v-select id="academic_year" v-model="form.academic_year" :options="academicYearOptions" label="label"
+            placeholder="Pilih Tahun Ajar" required class="text-gray-500" />
+            <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
+        </div>
 
-        <FormField placeholder="Wali Kelas" label="Wali Kelas" id="homeroom_teacher_id" type="select"
-          v-model="form.homeroom_teacher_id" :options="teacherOptions" required />
-        <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id
-          }}</div>
+        <!-- Wali Kelas -->
+        <div class="space-y-2">
+          <label for="homeroom_teacher_id" class="block text-sm font-medium text-secondary">Wali Kelas</label>
+          <v-select id="homeroom_teacher_id" v-model="form.homeroom_teacher_id" :options="teacherOptions"
+            :reduce="teacher => teacher.value" placeholder="Pilih Wali Kelas" required @search="searchTeacher" class="text-gray-500" />
+            <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id }}</div>
+        </div>
 
-        <FormField placeholder="Tidak Aktif" label="Status" id="isActive" type="select" v-model="form.is_active"
-          :options="statusOptions" />
+        <!-- Status -->
+        <div class="space-y-2">
+          <label for="is_active" class="block text-sm font-medium text-secondary">Status</label>
+          <v-select id="is_active" v-model="form.is_active" :options="statusOptions" label="label"
+            :reduce="status => status.value" placeholder="Pilih Status" required class="text-gray-500" />
+            <div v-if="formErrors.is_active" class="mt-1 text-sm text-red-500">{{ formErrors.is_active }}</div>
+        </div>
       </form>
     </Modal>
   </div>
@@ -139,53 +153,85 @@ import FormField from '@/components/common/FormField.vue';
 import Badge from '@/components/common/Badge.vue';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import apiClient from '@/helpers/axios';
-import { ClassItem, Teacher } from '@/types';
+import { ClassItem, Teacher, AcademicYearOption, FormErrors } from '@/types';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useModalStore } from '@/stores/modalStore';
 
+// API Endpoints
 const API_ENDPOINTS = {
   CLASSES: '/api/classes',
   TEACHERS: '/api/teachers',
 };
 
+// Store instances
 const loadingStore = useLoadingStore();
 const modalStore = useModalStore();
 
-const pageTitle = ref('Daftar Kelas');
+// Constants and reactive variables
+const pageTitle = ref<string>('Daftar Kelas');
 const classes = ref<ClassItem[]>([]);
-const teachers = ref([]);
-const perPageOptions = [10, 20, 30];
-const perPage = ref(perPageOptions[0]);
-const currentPage = ref(1);
-const searchQuery = ref('');
-const totalRecords = ref(0);
+const teachers = ref<Teacher[]>([]);
+const perPageOptions = [10, 20, 30] as const;
+const perPage = ref<typeof perPageOptions[number]>(perPageOptions[0]);
+const currentPage = ref<number>(1);
+const searchQuery = ref<string>('');
+const totalRecords = ref<number>(0);
 const totalPages = computed(() => Math.ceil(totalRecords.value / perPage.value));
-const showModal = ref(false);
-const modalTitle = ref('');
-const form = ref<ClassItem>({
-  id: 0,
-  name: '',
-  academic_year: '',
-  homeroom_teacher_id: 0,
-  is_active: 1,
-  homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: 0, telepon: '' },
-});
+const showModal = ref<boolean>(false);
+const modalTitle = ref<string>('');
+const form = ref<ClassItem | null>(null);
+const formErrors = ref<FormErrors>({});
 
-const formErrors = ref<{ [key: string]: string }>({});
-
+// Options for selects
 const statusOptions = [
   { label: 'Active', value: 1 },
   { label: 'Inactive', value: 0 },
-];
+] as const;
 
 const teacherOptions = computed(() =>
   teachers.value.map((teacher: Teacher) => ({
     label: `${teacher.user?.username} - ${teacher.nip}`,
-    value: teacher.id ?? 0,
+    value: teacher.id,
   }))
 );
 
+// Academic Year Options
+const currentYear = new Date().getFullYear();
+const academicYearOptions = computed<AcademicYearOption[]>(() => {
+  const options: AcademicYearOption[] = [];
+  for (let i = -100; i <= 100; i++) {
+    const year = currentYear + i;
+    const next = year + 1;
+    options.push({
+      label: `${year}/${next}`,
+      value: `${year}/${next}`,
+    });
+  }
+  return options;
+});
+
+// Utility Functions
+const resetForm = (): ClassItem => ({
+  id: null,
+  name: '',
+  academic_year: '',
+  homeroom_teacher_id: null,
+  is_active: null,
+  homeroom_teacher: {
+    id: null,
+    user_id: null,
+    nip: null,
+    telepon: null,
+  },
+});
+
+const resetModal = (): void => {
+  showModal.value = false;
+  form.value = resetForm();
+};
+
+// Fetch Functions
 const fetchClasses = debounce(async () => {
   loadingStore.show();
   try {
@@ -195,105 +241,71 @@ const fetchClasses = debounce(async () => {
         page: currentPage.value,
         search: searchQuery.value,
         sortField: sortField.value,
-        sortOrder: sortOrder.value
+        sortOrder: sortOrder.value,
       },
     });
     classes.value = data.data;
+    teachers.value = classes.value.map((classItem: ClassItem) => classItem.homeroom_teacher);
     totalRecords.value = data.total;
   } catch (error: any) {
     console.error('Failed to fetch classes:', error);
-    modalStore.showError('Error', error.response.data.message);
+    modalStore.showError('Error', error.response?.data?.message || 'Unknown error occurred');
+  } finally {
+    loadingStore.hide();
   }
-  loadingStore.hide();
 }, 500);
 
-const fetchTeachers = debounce(async () => {
+const searchTeacher = debounce(async (query: string) => {
+  if (!query) return;
   loadingStore.show();
   try {
-    const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS);
+    const { data } = await apiClient.get(API_ENDPOINTS.TEACHERS, { params: { search: query, per_page: 5 } });
     teachers.value = data.data;
   } catch (error: any) {
     console.error('Failed to fetch teachers:', error);
-    modalStore.showError('Error', error.response.data.message);
+    modalStore.showError('Error', error.response?.data?.message || 'Unknown error occurred');
+  } finally {
+    loadingStore.hide();
   }
-  loadingStore.hide();
 }, 500);
 
-interface AcademicYearOption {
-  label: string;
-  value: string;
-}
-
-const currentYear: number = new Date().getFullYear();
-
-const academicYearOptions = ref<AcademicYearOption[]>([]);
-
-for (let i = -100; i <= 100; i++) {
-  const year: number = currentYear + i;
-  const next: number = year + 1;
-  academicYearOptions.value.push({
-    label: `${year}/${next}`,
-    value: `${year}/${next}`
-  });
-}
-
-const toggleModal = (type: 'add' | 'edit', classItem?: ClassItem) => {
+// Modal and Form Handlers
+const toggleModal = (type: 'add' | 'edit', classItem?: ClassItem): void => {
   modalTitle.value = type === 'add' ? 'Add Class' : 'Edit Class';
   showModal.value = true;
   form.value = type === 'edit' ? { ...classItem } : resetForm();
 };
 
-const resetForm = () => ({
-  id: 0,
-  name: '',
-  academic_year: '',
-  homeroom_teacher_id: 0,
-  is_active: 1,
-  homeroom_teacher: { id: 0, user_id: 0, nip: '', subject_id: 0, telepon: '' },
-});
-
-const resetModal = () => {
-  showModal.value = false;
-  form.value = resetForm();
-};
-
-const handleFormSubmit = debounce(async () => {
+const handleFormSubmit = debounce(async (): Promise<void> => {
   formErrors.value = {};
-  if (!form.value.name) formErrors.value.name = 'Class Name harus diisi';
-  if (!form.value.academic_year) formErrors.value.academic_year = 'Tahun Akademik harus diisi';
-  if (!form.value.homeroom_teacher_id) formErrors.value.homeroom_teacher_id = 'Wali Kelas harus diisi';
+  if (!form.value?.name) formErrors.value.name = 'Class Name is required';
+  if (!form.value?.academic_year) formErrors.value.academic_year = 'Academic Year is required';
+  if (!form.value?.homeroom_teacher_id) formErrors.value.homeroom_teacher_id = 'Homeroom Teacher is required';
+  if (!form.value?.is_active) formErrors.value.is_active = 'Status is required';
 
-  if (Object.keys(formErrors.value).length > 0) {
-    return;
-  }
+  if (Object.keys(formErrors.value).length > 0) return;
 
   loadingStore.show();
   const endpoint = form.value.id ? `${API_ENDPOINTS.CLASSES}/${form.value.id}` : API_ENDPOINTS.CLASSES;
   const method = form.value.id ? 'put' : 'post';
+
   try {
     await apiClient[method](endpoint, form.value);
     fetchClasses();
     resetModal();
   } catch (error: any) {
     console.error('Failed to submit form:', error);
-    modalStore.showError('Error', error.response.data.message);
+    modalStore.showError('Error', error.response?.data?.message || 'Unknown error occurred');
+  } finally {
+    loadingStore.hide();
   }
-  loadingStore.hide();
 }, 500);
 
-onMounted(() => {
-  fetchClasses();
-  fetchTeachers()
-});
+// Sorting
+const sortField = ref<keyof ClassItem>('name');
+const sortOrder = ref<'asc' | 'desc'>('asc');
 
-watch([perPage, currentPage, searchQuery], () => {
-  fetchClasses();
-});
-
-const sortField = ref('name');
-const sortOrder = ref('asc');
-
-const sort = (field: string) => {
+const sort = (field: keyof ClassItem): void => {
   if (sortField.value === field) {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
   } else {
@@ -302,4 +314,8 @@ const sort = (field: string) => {
   }
   fetchClasses();
 };
+
+// Lifecycle Hooks
+onMounted(fetchClasses);
+watch([perPage, currentPage, searchQuery], fetchClasses);
 </script>
