@@ -80,14 +80,14 @@
         </thead>
       </table>
     </div>
-    <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
-      <table class="min-w-full table-auto text-sm text-left ">
-        <tbody class="divide-y divide-gray-200 ">
+    <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto h-full hidden lg:block ">
+      <table class="min-w-full table-auto text-sm text-left">
+        <tbody class="">
           <tr v-if="classes.length === 0">
             <td colspan="5" class="text-center py-4 text-secondary">No classes found.</td>
           </tr>
           <tr v-for="(classItem, index) in classes" :key="index"
-            class="hover:bg-gray-100 transition grid grid-cols-5 items-center">
+            class="hover:bg-gray-100 transition grid grid-cols-5 items-center border-b">
             <td class="px-4 py-3 text-secondary">{{ classItem.name }}</td>
             <td class="px-4 py-3 text-secondary">{{ classItem.academic_year }}</td>
             <td class="px-4 py-3 text-secondary">{{ classItem.homeroom_teacher?.user?.username }} - {{
@@ -121,15 +121,17 @@
           <label for="academic_year" class="block text-sm font-medium text-secondary">Tahun Akademik</label>
           <v-select id="academic_year" v-model="form.academic_year" :options="academicYearOptions" label="label"
             placeholder="Pilih Tahun Ajar" required class="text-gray-500" />
-            <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
+          <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
         </div>
 
         <!-- Wali Kelas -->
         <div class="space-y-2">
           <label for="homeroom_teacher_id" class="block text-sm font-medium text-secondary">Wali Kelas</label>
           <v-select id="homeroom_teacher_id" v-model="form.homeroom_teacher_id" :options="teacherOptions"
-            :reduce="teacher => teacher.value" placeholder="Pilih Wali Kelas" required @search="searchTeacher" class="text-gray-500" />
-            <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id }}</div>
+            :reduce="teacher => teacher.value" placeholder="Pilih Wali Kelas" required @search="searchTeacher"
+            class="text-gray-500" />
+          <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id
+            }}</div>
         </div>
 
         <!-- Status -->
@@ -137,7 +139,7 @@
           <label for="is_active" class="block text-sm font-medium text-secondary">Status</label>
           <v-select id="is_active" v-model="form.is_active" :options="statusOptions" label="label"
             :reduce="status => status.value" placeholder="Pilih Status" required class="text-gray-500" />
-            <div v-if="formErrors.is_active" class="mt-1 text-sm text-red-500">{{ formErrors.is_active }}</div>
+          <div v-if="formErrors.is_active" class="mt-1 text-sm text-red-500">{{ formErrors.is_active }}</div>
         </div>
       </form>
     </Modal>

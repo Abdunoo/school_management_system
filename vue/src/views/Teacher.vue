@@ -327,7 +327,7 @@ const handleFormSubmit = async (): Promise<void> => {
         nip: form.value?.nip,
         subject_ids: form.value?.subject_ids,
         telepon: form.value?.telepon,
-        user_id: form.value?.user_id,
+        user_id: form.value?.user?.id,
     };
 
     loadingStore.show();
