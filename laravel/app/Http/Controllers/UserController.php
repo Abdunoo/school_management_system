@@ -10,9 +10,10 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 100); // Default to 100 if not provided
+        $perPage = $request->input('per_page', 10); // Default to 100 if not provided
         $search = $request->input('search', '');
-        $role = $request->input('role', '');
+        $sortBy = $request->input('sort_by', 'created_at'); // Default to 'created_at'
+        $sortDirection = $request->input('sort_order', 'desc'); // Default to 'desc'
 
         try {
             $query = User::query();
@@ -22,23 +23,25 @@ class UserController extends Controller
                       ->orWhere('email', 'like', '%' . $search . '%');
             }
 
-            if ($role) {
-                $query->where('role', $role);
+            // Sorting
+            if (in_array($sortBy, ['username', 'email', 'role', 'created_at', 'updated_at']) && in_array($sortDirection, ['asc', 'desc'])) {
+                $query->orderBy($sortBy, $sortDirection);
             }
 
             $users = $query->paginate($perPage);
             return $this->json(200, 'Users retrieved successfully', $users);
         } catch (\Exception $e) {
-            return $this->json(500, 'Failed to retrieve users : '. $e->getMessage());
+            return $this->json(500, 'Failed to retrieve users: ' . $e->getMessage());
         }
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
+            'is_active' => 'required|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -49,7 +52,7 @@ class UserController extends Controller
             $user = User::create($request->all());
             return $this->json(201, 'User created successfully', $user);
         } catch (\Exception $e) {
-            return $this->json(500, 'Failed to create user', null, ['error' => $e->getMessage()]);
+            return $this->json(500, 'Failed to create user: ' . $e->getMessage(), null, ['error' => $e->getMessage()]);
         }
     }
 

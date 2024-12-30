@@ -19,7 +19,8 @@ const menuItems = [
   { name: 'Kelas', icon: AcademicCapIcon, route: '/classes' },
   { name: 'Mata Pelajaran', icon: BookOpenIcon, route: '/subjects' },
   { name: 'Jadwal', icon: CalendarIcon, route: '/schedule' },
-  { name: 'Laporan', icon: ClipboardDocumentListIcon, route: '/reports' }
+  { name: 'Laporan', icon: ClipboardDocumentListIcon, route: '/reports' },
+  { name: 'Users', icon: UserGroupIcon, route: '/users' }
 ];
 
 // New bottom menu items
