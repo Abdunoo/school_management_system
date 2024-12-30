@@ -318,7 +318,7 @@ const teacherOptions = computed(() => {
 
 
 const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
-    modalTitle.value = action === 'add' ? 'Add Schedule' : 'Edit Schedule';
+    modalTitle.value = action === 'add' ? 'Tambah Jadwal' : 'Edit Jadwal';
     showModal.value = true;
     if (action === 'edit' && schedule) {
         subjects.value = [{ id: schedule.subject_id, name: schedule.subject.name }];

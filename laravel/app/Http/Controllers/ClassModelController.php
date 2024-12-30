@@ -17,12 +17,10 @@ class ClassModelController extends Controller
                 $search = $request->input('search');
 
                 $query->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : true))
                     ->orWhere('academic_year', 'like', '%' . $search . '%')
                     ->orWhereHas('homeroomTeacher.user', function ($q) use ($search) {
                         $q->where('username', 'like', '%' . $search . '%')
-                          ->orWhere('email', 'like', '%' . $search . '%')
-                          ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : true));
+                          ->orWhere('email', 'like', '%' . $search . '%');
                     });
             }
 

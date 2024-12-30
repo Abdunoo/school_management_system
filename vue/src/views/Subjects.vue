@@ -157,7 +157,7 @@ const fetchSubjects = debounce(async () => {
 }, 500);
 
 const toggleModal = (type: 'add' | 'edit', subject?: Subject) => {
-  modalTitle.value = type === 'add' ? 'Add Subject' : 'Edit Subject';
+  modalTitle.value = type === 'add' ? 'Tambah Mata Pelajaran' : 'Edit Mata Pelajaran';
   showModal.value = true;
   form.value = type === 'edit' ? { ...subject } : resetForm();
 };

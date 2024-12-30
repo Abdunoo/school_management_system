@@ -31,31 +31,61 @@
                         <th v-for="header in tableHeaders" :key="header.field"
                             class="px-4 py-3 text-secondary cursor-pointer" @click="sort(header.field)">
                             {{ header.label }}
-                            <span v-if="sortField === header.field">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
+                            <span v-if="header.field && sortField === header.field">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
                         </th>
                     </tr>
                 </thead>
             </table>
         </div>
-        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto max-h-full hidden lg:block ">
+        <div class="rounded-xl border border-gray-300 bg-gray-50 overflow-y-auto h-full hidden lg:block ">
             <table class="min-w-full table-auto text-sm text-left">
-                <tbody class="divide-y divide-gray-200">
+                <tbody>
                     <tr v-if="teachers.length === 0">
                         <td colspan="7" class="text-center py-4 text-secondary">No teachers found.</td>
                     </tr>
                     <tr v-for="teacher in teachers" :key="teacher.id"
-                        class="hover:bg-gray-100 transition grid grid-cols-7 items-center">
+                        class="hover:bg-gray-100 transition grid grid-cols-7 items-center border-b">
                         <td class="px-4 py-3 text-secondary">{{ teacher.nip }}</td>
                         <td class="px-4 py-3 text-secondary">
                             <div class="flex flex-wrap gap-1">
-                                <Badge v-for="subject in teacher.subjects" :key="subject.id" variant="primary">{{
-                                    subject.name }}</Badge>
+                                <Menu as="div" class="relative inline-block text-left">
+                                    <div>
+                                        <MenuButton
+                                            class="inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                            show
+                                            <ChevronDownIcon class="-mr-1 size-5 text-gray-400" aria-hidden="true" />
+                                        </MenuButton>
+                                    </div>
+
+                                    <transition enter-active-class="transition ease-out duration-100"
+                                        enter-from-class="transform opacity-0 scale-95"
+                                        enter-to-class="transform opacity-100 scale-100"
+                                        leave-active-class="transition ease-in duration-75"
+                                        leave-from-class="transform opacity-100 scale-100"
+                                        leave-to-class="transform opacity-0 scale-95">
+                                        <MenuItems
+                                            class="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
+                                            <div class="py-1">
+                                                <MenuItem v-for="subject in teacher.subjects" :key="subject.id"
+                                                    v-slot="{ active }">
+                                                <button type="button" :class="[
+                                                    active ? 'bg-gray-100 text-gray-900 outline-none' : 'text-gray-700',
+                                                    'block w-full px-4 py-2 text-left text-sm',
+                                                ]">
+                                                    {{ subject.name }}
+                                                </button>
+                                                </MenuItem>
+                                            </div>
+                                        </MenuItems>
+                                    </transition>
+                                </Menu>
                             </div>
                         </td>
-                        <td class="px-4 py-3 text-secondary">{{ teacher.telepon }}</td>
-                        <td class="px-4 py-3 text-secondary">{{ teacher.user?.username }}</td>
-                        <td class="px-4 py-3 text-secondary">{{ teacher.user?.email }}</td>
-                        <td class="px-4 py-3 text-secondary">
+
+                        <td class="px-4 py-3 text-secondary line-clamp-1">{{ teacher.telepon }}</td>
+                        <td class="px-4 py-3 text-secondary line-clamp-1 flex flex-wrap">{{ teacher.user?.username }}</td>
+                        <td class="px-4 py-3 text-secondary line-clamp-1">{{ teacher.user?.email }}</td>
+                        <td class="px-4 py-3 text-secondary line-clamp-1">
                             <Badge :variant="teacher.user?.is_active ? 'success' : 'danger'">{{ teacher.user?.is_active
                                 ? 'Active' : 'Inactive' }}</Badge>
                         </td>
@@ -147,6 +177,8 @@ import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import debounce from 'lodash.debounce';
 import { useLoadingStore } from '@/stores/loadingStore';
 import { useModalStore } from '@/stores/modalStore';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
+import { ChevronDownIcon } from '@heroicons/vue/20/solid'
 
 // Stores
 const loadingStore = useLoadingStore();
@@ -259,7 +291,7 @@ const resetModal = (): void => {
 
 // Toggle modal
 const toggleModal = (type: 'add' | 'edit', teacher?: Teacher): void => {
-    modalTitle.value = type === 'edit' ? 'Edit Teacher' : 'Add Teacher';
+    modalTitle.value = type === 'add' ? 'Tambah Guru' : 'Edit Guru';
     form.value = type === 'edit' ? { ...teacher } : resetForm();
     showModal.value = true;
 };
@@ -316,6 +348,7 @@ const handleFormSubmit = async (): Promise<void> => {
 
 // Sorting
 const sort = (field: string): void => {
+    if (field === '') return;
     sortOrder.value = sortField.value === field ? (sortOrder.value === 'asc' ? 'desc' : 'asc') : 'asc';
     sortField.value = field;
     fetchTeachers();
@@ -324,7 +357,7 @@ const sort = (field: string): void => {
 // Table headers
 const tableHeaders = ref<Array<{ field: string; label: string }>>([
     { field: 'nip', label: 'NIP' },
-    { field: 'subjects', label: 'Mata Pelajaran' },
+    { field: '', label: 'Mata Pelajaran' },
     { field: 'telepon', label: 'Telepon' },
     { field: 'username', label: 'Username' },
     { field: 'email', label: 'Email' },

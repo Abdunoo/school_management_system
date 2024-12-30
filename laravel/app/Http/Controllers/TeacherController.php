@@ -20,8 +20,7 @@ class TeacherController extends Controller
                     ->orWhere('telepon', 'like', '%' . $search . '%')
                     ->orWhereHas('user', function ($q) use ($search) {
                         $q->where('username', 'like', '%' . $search . '%')
-                          ->orWhere('email', 'like', '%' . $search . '%')
-                          ->orWhere('is_active', $search === 'aktif' ? true : ($search === 'tidak aktif' ? false : false));
+                          ->orWhere('email', 'like', '%' . $search . '%');
                     })
                     ->orWhereHas('subjects', function ($q) use ($search) {
                         $q->where('name', 'like', '%' . $search . '%');

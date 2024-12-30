@@ -112,14 +112,14 @@
         <!-- Nama Kelas -->
         <div class="space-y-2">
           <label for="name" class="block text-sm font-medium text-secondary">Nama Kelas</label>
-          <FormField id="name" placeholder="Masukkan Nama Kelas" v-model="form?.name" required
+          <FormField id="name" placeholder="Masukkan Nama Kelas" v-model="form.name" required
             :errorMessage="formErrors.name" class="w-full" />
         </div>
 
         <!-- Tahun Akademik -->
         <div class="space-y-2">
           <label for="academic_year" class="block text-sm font-medium text-secondary">Tahun Akademik</label>
-          <v-select id="academic_year" v-model="form?.academic_year" :options="academicYearOptions" label="label"
+          <v-select id="academic_year" v-model="form.academic_year" :options="academicYearOptions" label="label"
             placeholder="Pilih Tahun Ajar" required class="text-gray-500" />
             <div v-if="formErrors.academic_year" class="mt-1 text-sm text-red-500">{{ formErrors.academic_year }}</div>
         </div>
@@ -127,7 +127,7 @@
         <!-- Wali Kelas -->
         <div class="space-y-2">
           <label for="homeroom_teacher_id" class="block text-sm font-medium text-secondary">Wali Kelas</label>
-          <v-select id="homeroom_teacher_id" v-model="form?.homeroom_teacher_id" :options="teacherOptions"
+          <v-select id="homeroom_teacher_id" v-model="form.homeroom_teacher_id" :options="teacherOptions"
             :reduce="teacher => teacher.value" placeholder="Pilih Wali Kelas" required @search="searchTeacher" class="text-gray-500" />
             <div v-if="formErrors.homeroom_teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.homeroom_teacher_id }}</div>
         </div>
@@ -135,7 +135,7 @@
         <!-- Status -->
         <div class="space-y-2">
           <label for="is_active" class="block text-sm font-medium text-secondary">Status</label>
-          <v-select id="is_active" v-model="form?.is_active" :options="statusOptions" label="label"
+          <v-select id="is_active" v-model="form.is_active" :options="statusOptions" label="label"
             :reduce="status => status.value" placeholder="Pilih Status" required class="text-gray-500" />
             <div v-if="formErrors.is_active" class="mt-1 text-sm text-red-500">{{ formErrors.is_active }}</div>
         </div>
@@ -271,7 +271,7 @@ const searchTeacher = debounce(async (query: string) => {
 
 // Modal and Form Handlers
 const toggleModal = (type: 'add' | 'edit', classItem?: ClassItem): void => {
-  modalTitle.value = type === 'add' ? 'Add Class' : 'Edit Class';
+  modalTitle.value = type === 'add' ? 'Tambah Kelas' : 'Edit Kelas';
   showModal.value = true;
   form.value = type === 'edit' ? { ...classItem } : resetForm();
 };
@@ -281,7 +281,8 @@ const handleFormSubmit = debounce(async (): Promise<void> => {
   if (!form.value?.name) formErrors.value.name = 'Class Name is required';
   if (!form.value?.academic_year) formErrors.value.academic_year = 'Academic Year is required';
   if (!form.value?.homeroom_teacher_id) formErrors.value.homeroom_teacher_id = 'Homeroom Teacher is required';
-  if (!form.value?.is_active) formErrors.value.is_active = 'Status is required';
+  console.log(form.value?.is_active)
+  if (form.value?.is_active === null) formErrors.value.is_active = 'Status is required';
 
   if (Object.keys(formErrors.value).length > 0) return;
 
