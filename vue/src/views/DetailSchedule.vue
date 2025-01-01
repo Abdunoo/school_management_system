@@ -1,7 +1,7 @@
 <template>
     <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
         <!-- Page Controls -->
-        <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
+        <div class="flex justify-between bg-gray-100 p-4 rounded-lg">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
             <div class="flex flex-col sm:flex-row sm:justify-between sm:space-x-6 space-y-4 sm:space-y-0">
                 <div class="flex items-center space-x-2">
@@ -14,39 +14,68 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap lg:flex-nowrap space-y-4 lg:space-y-0 lg:space-x-4">
-            <!-- Right Panel (Schedules) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full">
-                <div v-for="(column, index) in columns" :key="index" :data-index="index"
-                    class="column bg-gray-50 border border-gray-200 rounded-lg shadow-md p-4 flex flex-col">
-                    <!-- Column Title -->
-                    <div class="bg-white border border-gray-200 rounded-md shadow-sm p-4 mb-4">
-                        <h2 class="text-lg font-semibold text-center text-gray-700">{{ column.name }}</h2>
+        <div class="flex flex-1 overflow-x-auto">
+            <!-- Lesson Hours Column -->
+            <div class="flex-shrink-0 w-20 pt-20">
+                <div class="space-y-4 mt-8">
+                    <div v-for="hour in lessonHours" :key="hour"
+                        class="h-20 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                        <span class="text-sm font-medium text-gray-700">Jam ke-{{ hour }}</span>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Draggable Area -->
-                    <draggable v-model="column.schedules" :group="{ name: 'schedules' }" item-key="id"
-                        class="flex flex-col gap-4 min-h-[200px]" ghost-class="ghost" @end="onDragEnd">
-                        <template #item="{ element: schedule }">
-                            <div :id="`${schedule.id}`" @click="openModal('edit', schedule)"
-                                class="relative h-36 p-4 bg-white border border-gray-200 rounded-md shadow-sm hover:shadow-md transition cursor-pointer">
-                                <!-- Top Right Badge -->
-                                <Badge class="absolute top-2 right-2" variant="primary">
-                                    #{{ schedule.lesson_hours }}
-                                </Badge>
+            <!-- Schedule Columns -->
+            <div class="flex-1 ml-4">
+                <div class="flex gap-6 min-w-max">
+                    <div v-for="(column, index) in columns" :key="index" :data-index="index"
+                        class="column bg-gray-50 border border-gray-200 rounded-lg shadow-lg p-6 flex flex-col flex-1">
+                        <!-- Column Title -->
+                        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mb-6">
+                            <h2 class="text-lg font-semibold text-center text-gray-700">{{ column.name }}</h2>
+                        </div>
 
-                                <!-- Card Content -->
-                                <p class="text-base font-medium text-gray-800">{{ schedule.subject.name }}</p>
-                                <p class="text-sm text-gray-500">Guru: {{ schedule.teacher.user.username }}</p>
-                                <p class="text-sm text-gray-500">Hari: {{ schedule.day }}</p>
+                        <!-- Draggable Area -->
+                        <draggable v-model="column.schedules" :group="{ name: 'schedules' }" item-key="id"
+                            handle=".handle" class="flex flex-col gap-4 min-h-[200px]" ghost-class="ghost"
+                            @end="onDragEnd">
+                            <template #item="{ element: schedule }">
+                                <div :id="`${schedule.id}`" @click="openModal('edit', schedule)"
+                                    :style="{ height: `${schedule.duration * (5 + 1) - 1}rem ` }"
+                                    class="relative p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 cursor-pointer">
+                                    <!-- Top Right Badge -->
+                                    <span class="handle absolute top-2 right-2">
+                                        <Bars3Icon class="w-4 h-4" />
+                                    </span>
+
+                                    <!-- Schedule Details -->
+                                    <div class="space-y-2 mt-2">
+                                        <h3 class="text-base font-medium text-gray-800 line-clamp-2">
+                                            {{ schedule.subject.name }}
+                                        </h3>
+                                        <div class="space-y-1">
+                                            <p class="text-sm text-gray-600 flex items-center gap-2">
+                                                <UserIcon class="w-4 h-4" />
+                                                {{ schedule.teacher.user.username }}
+                                            </p>
+                                            <p class="text-sm text-gray-600 flex items-center gap-2">
+                                                <CalendarIcon class="w-4 h-4" />
+                                                {{ schedule.day }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </draggable>
+
+                        <!-- Empty State -->
+                        <div v-if="column.schedules.length === 0"
+                            class="flex items-center justify-center h-32 text-gray-400 text-sm border-2 border-dashed border-gray-300 rounded-lg">
+                            <div class="text-center">
+                                <CalendarIcon class="w-6 h-6 mx-auto mb-2" />
+                                <p>No schedules yet</p>
                             </div>
-                        </template>
-                    </draggable>
-
-                    <!-- Empty State -->
-                    <div v-if="column.schedules.length === 0"
-                        class="text-gray-400 text-sm text-center py-4 border-2 border-dashed border-gray-300 rounded-md">
-                        No schedules
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,17 +86,17 @@
                 <!-- Kelas (Class) Selection -->
                 <div class="mb-4">
                     <label for="class_id" class="block text-sm font-medium text-gray-700">Kelas</label>
-                    <v-select id="class_id" class="text-gray-500" v-model="selectedClass"
-                         disabled label="name" required placeholder="Pilih Kelas" />
+                    <v-select id="class_id" class="text-gray-500" v-model="selectedClass" disabled label="name" required
+                        placeholder="Pilih Kelas" />
                     <div v-if="formErrors.class_id" class="mt-1 text-sm text-red-500">{{ formErrors.class_id }}</div>
                 </div>
 
                 <!-- Mata Pelajaran (Subject) Selection -->
                 <div class="mb-4">
                     <label for="subject_id" class="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
-                    <v-select id="subject_id" v-model="form.subject_id" :options="subjects" @input="searchSubject($event.target.value)"
-                        :reduce="(option) => option.id" label="name" placeholder="Pilih Mata Pelajaran" required
-                        class="text-gray-500" :open-on-focus="false"
+                    <v-select id="subject_id" v-model="form.subject_id" :options="subjects"
+                        @input="searchSubject($event.target.value)" :reduce="(option) => option.id" label="name"
+                        placeholder="Pilih Mata Pelajaran" required class="text-gray-500" :open-on-focus="false"
                         :class="formErrors.subject_id ? 'border-red-500' : 'border-gray-300'"
                         aria-invalid="formErrors.subject_id ? 'true' : 'false'" />
                     <div v-if="formErrors.subject_id" class="mt-1 text-sm text-red-500">{{ formErrors.subject_id }}
@@ -77,9 +106,9 @@
                 <!-- Guru (Teacher) Selection -->
                 <div class="mb-4">
                     <label for="teacher_id" class="block text-sm font-medium text-gray-700">Guru</label>
-                    <v-select id="teacher_id" v-model="form.teacher_id" :options="teacherOptions" @input="searchTeacher($event.target.value)"
-                        :reduce="(option) => option.value" label="label" placeholder="Pilih Guru" required
-                        class="text-gray-500" :open-on-focus="false" />
+                    <v-select id="teacher_id" v-model="form.teacher_id" :options="teacherOptions"
+                        @input="searchTeacher($event.target.value)" :reduce="(option) => option.value" label="label"
+                        placeholder="Pilih Guru" required class="text-gray-500" :open-on-focus="false" />
                     <div v-if="formErrors.teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.teacher_id }}
                     </div>
                 </div>
@@ -88,8 +117,7 @@
                 <div class="mb-4">
                     <label for="day" class="block text-sm font-medium text-gray-700">Hari</label>
                     <v-select id="day" class="text-gray-500" v-model="form.day" :options="dayOptions" label="label"
-                    :reduce="(option) => option.value"
-                        required placeholder="Pilih Hari" :open-on-focus="false" />
+                        :reduce="(option) => option.value" required placeholder="Pilih Hari" :open-on-focus="false" />
                     <div v-if="formErrors.day" class="mt-1 text-sm text-red-500">{{ formErrors.day }}</div>
                 </div>
 
@@ -131,6 +159,7 @@ import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
 import Badge from '@/components/common/Badge.vue';
 import { switchMap } from 'rxjs/operators';
+import { UserIcon, CalendarIcon, Bars3Icon } from '@heroicons/vue/24/outline';
 
 const className = router.currentRoute.value.params.name;
 const pageTitle = ref(`Jadwal Pembelajaran ${className} `);
@@ -141,6 +170,7 @@ const API_ENDPOINTS = {
     TEACHERS: '/api/teachers',
     SUBJECTS: '/api/subjects',
     BULK_UPDATE: '/api/class-schedules/bulk-update',
+    TEACHER_BY_SUBJECT: '/api/teachers/by-subject-id/',
 };
 
 const loadingStore = useLoadingStore();
@@ -154,9 +184,12 @@ interface Column {
 
 const lessonHours = ref<number[]>([]);
 
-const addLessonHour = () => {
-    const nextHour = lessonHours.value.length + 1;
-    lessonHours.value.push(nextHour);
+const addLessonHour = (count: number) => {
+    for (let i = 0; i < count; i++) {
+    console.log('Adding lesson hour:', count);
+        const nextHour = lessonHours.value.length + 1;
+        lessonHours.value.push(nextHour);
+    }
 };
 
 // Helper function to map API data to columns
@@ -211,7 +244,6 @@ const columns = ref<Column[]>([]);
 // Modal state
 const showModal = ref(false);
 const modalTitle = ref('');
-const classes = ref<ClassItem[]>([]);
 const teachers = ref<Teacher[]>([]);
 const subjects = ref<Subject[]>([]);
 const form = ref<ClassScheduleItem>({
@@ -239,23 +271,6 @@ const dayOptions = [
     { label: 'Minggu', value: 'Minggu' },
 ];
 
-const fetchClasses = debounce(() => {
-    loadingStore.show();
-    from(apiClient.get(API_ENDPOINTS.CLASSES)).pipe(
-        switchMap(response => {
-            classes.value = response.data.data;
-            return [];
-        })
-    ).subscribe({
-        error: (error: any) => {
-            console.error('Failed to fetch classes:', error);
-            modalStore.showError('Error', error.response.data.message);
-            loadingStore.hide();
-        },
-        complete: () => loadingStore.hide()
-    });
-}, 500);
-
 const searchTeacher = debounce((query) => {
     loadingStore.show();
     from(apiClient.get(API_ENDPOINTS.TEACHERS, {
@@ -281,9 +296,9 @@ const searchTeacher = debounce((query) => {
 const searchSubject = debounce((query) => {
     loadingStore.show();
     from(apiClient.get(API_ENDPOINTS.SUBJECTS, {
-        params: { 
+        params: {
             search: query,
-            per_page: 5 
+            per_page: 5
         },
     })).pipe(
         switchMap(response => {
@@ -316,6 +331,15 @@ const teacherOptions = computed(() => {
         });
 });
 
+const fetchTeachers = (subjectId: number) => {
+    apiClient.get(API_ENDPOINTS.TEACHER_BY_SUBJECT + subjectId).then((response) => {
+        teachers.value = response.data;
+    }).catch((error) => {
+        console.error('Failed to fetch teachers:', error);
+        modalStore.showError('Error', error.response.data.message);
+    });
+};
+
 
 const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
     modalTitle.value = action === 'add' ? 'Tambah Jadwal' : 'Edit Jadwal';
@@ -344,53 +368,67 @@ const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
 
 watch(() => form.value.subject_id, (newSubjectId) => {
     if (newSubjectId) {
-        // fetchTeachers(newSubjectId); // Fetch teachers when a new subject is selected
+        fetchTeachers(newSubjectId);
     }
 });
 
 const onDragEnd = (event: any) => {
     const { item, to, from, newIndex, oldIndex } = event;
-    console.log(event)
 
-    // Determine the new column and its associated day
+    // Get column indices
     const toColumnIndex = parseInt(to.closest('.column').dataset.index);
     const fromColumnIndex = parseInt(from.closest('.column').dataset.index);
-    const newDay = columns.value[toColumnIndex].name;
-    const oldDay = columns.value[fromColumnIndex].name;
 
-    // Log all relevant data for debugging
-    console.log('=== Drag Event Details ===');
-    console.log('Dragged Item:', item);
+    // Debugging: Log the event and indices
+    console.log('Event:', event);
     console.log('From Column Index:', fromColumnIndex);
-    console.log('From Index:', oldIndex);
+    console.log('Old Index:', oldIndex);
     console.log('To Column Index:', toColumnIndex);
-    console.log('To Index:', newIndex);
-    console.log('Old Day:', oldDay);
-    console.log('New Day:', newDay);
+    console.log('New Index:', newIndex);
 
-    // Update the dragged schedule's day and lesson_hours
-    columns.value.forEach((column, colIndex) => {
-        column.schedules.forEach((schedule, index) => {
-            if (schedule.id === parseInt(item.id)) {
-                console.log('true')
-                schedule.day = newDay;
-                schedule.lesson_hours = lessonHours.value[newIndex];
-            }
-            // Update the lesson_hours for all schedules in the "to" column
-            console.log(colIndex, toColumnIndex)
-            if (colIndex === toColumnIndex) {
-                if (lessonHours.value[index] === undefined) addLessonHour();
-                schedule.lesson_hours = lessonHours.value[index];
-                console.log('to lesson_hours', schedule.lesson_hours)
-            }
-            // Update the lesson_hours for all schedules in the "from" column
-            if (colIndex === fromColumnIndex) {
-                schedule.lesson_hours = lessonHours.value[index];
-            }
-        });
+    // Debugging: Log the columns array
+    console.log('Columns:', JSON.stringify(columns.value, null, 2));
+
+    // Recalculate lesson_hours for the source column
+    let sourceAccumulatedHours = 1;
+    columns.value[fromColumnIndex].schedules.forEach((schedule) => {
+        schedule.lesson_hours = sourceAccumulatedHours;
+        sourceAccumulatedHours += schedule.duration;
     });
 
-    console.log('Updated schedules:', columns.value);
+    const draggedSchedule = columns.value[toColumnIndex].schedules[newIndex];
+    console.log('Dragged Schedule:', draggedSchedule);
+    // Update the dragged schedule's day to the target column's day
+    draggedSchedule.day = columns.value[toColumnIndex].name;
+
+    // Recalculate lesson_hours for the target column
+    let targetAccumulatedHours = 1;
+    columns.value[toColumnIndex].schedules.forEach((schedule) => {
+        schedule.lesson_hours = targetAccumulatedHours;
+        targetAccumulatedHours += schedule.duration;
+    });
+
+    const latestLessonHours = lessonHours.value.length;
+    if (targetAccumulatedHours > latestLessonHours) {
+        addLessonHour(draggedSchedule.duration);
+    }
+};
+
+// Helper function to check schedule overlaps
+const isOverlapping = (draggedSchedule: any, existingSchedules: any[]): boolean => {
+    const draggedStart = draggedSchedule.lesson_hours;
+    const draggedEnd = draggedStart + draggedSchedule.duration;
+
+    return existingSchedules.some(schedule => {
+        if (schedule.id === draggedSchedule.id || schedule.day !== draggedSchedule.day) {
+            return false;
+        }
+
+        const scheduleStart = schedule.lesson_hours;
+        const scheduleEnd = scheduleStart + schedule.duration;
+
+        return (draggedStart < scheduleEnd && draggedEnd > scheduleStart);
+    });
 };
 
 const resetForm = () => ({
@@ -413,6 +451,8 @@ const resetModal = () => {
 
 const handleFormSubmit = debounce(async () => {
     formErrors.value = {};
+
+    // Basic validation
     if (!form.value.class_id) formErrors.value.class_id = 'Kelas harus diisi';
     if (!form.value.subject_id) formErrors.value.subject_id = 'Mata Pelajaran harus diisi';
     if (!form.value.teacher_id) formErrors.value.teacher_id = 'Guru harus diisi';
@@ -424,6 +464,14 @@ const handleFormSubmit = debounce(async () => {
         return;
     }
 
+    // Check for overlapping lesson hours
+    const existingSchedules = columns.value.find(column => column.name === form.value.day)?.schedules || [];
+    if (isOverlapping(form.value, existingSchedules)) {
+        modalStore.showError('Error', 'Jadwal bertabrakan dengan jadwal yang sudah ada pada hari yang sama.');
+        return;
+    }
+
+    // Proceed with form submission
     loadingStore.show();
     const endpoint = form.value.id ? `${API_ENDPOINTS.CLASS_SCHEDULES}/${form.value.id}` : API_ENDPOINTS.CLASS_SCHEDULES;
     const method = form.value.id ? 'put' : 'post';

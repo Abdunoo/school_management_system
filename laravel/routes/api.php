@@ -20,3 +20,4 @@ Route::apiResource('/class-schedules', ClassScheduleController::class);
 Route::post('/class-schedules/bulk-update', [ClassScheduleController::class, 'bulkUpdate']);
 Route::get('/class-schedules/by-class/{className}', [ClassScheduleController::class, 'getScheduleByClassName']);
 Route::get('/dashboard/counts', [DashboardController::class, 'getCounts']);
+Route::get('/teachers/by-subject-id/{id}', [TeacherController::class,'getTeacherBySubjectId']);

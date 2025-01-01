@@ -15,6 +15,13 @@ defineProps<{
     <div class="flex items-center justify-between ">
       <div class="flex items-center space-x-4">
         <Bars3BottomLeftIcon class="w-6 h-6 text-gray-600 cursor-pointer" @click="toggleSidebar" />
+        <img src="../assets/sms.webp" alt="High-Resolution Logo" class="
+          w-10 h-10 
+          lg:w-12 lg:h-12 
+          rounded-full 
+          object-cover 
+          border-2 border-primary 
+        ">
         <p class="text-lg md:text-xl font-semibold text-gray-800">School Management System</p>
       </div>
 

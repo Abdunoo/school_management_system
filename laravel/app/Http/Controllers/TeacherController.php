@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -118,6 +119,18 @@ class TeacherController extends Controller
             return $this->json(200, 'Teacher deleted successfully', null);
         } catch (\Exception $e) {
             return $this->json(500, 'Failed to delete teacher', null, ['message' => $e->getMessage()]);
+        }
+    }
+
+    public function getTeacherBySubjectId($id)
+    {
+        try {
+            $subject = Subject::with('teachers.user')->find($id);
+            $teachers = $subject->teachers;
+
+            return $this->json(200, 'Teacher by subject id', $teachers);
+        } catch (\Exception $e) {
+            return $this->json(500, 'Failed to get teacher by subject id : '.$e->getMessage(), null,['message'=> $e->getMessage()]);
         }
     }
 }

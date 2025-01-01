@@ -76,14 +76,14 @@ class ClassScheduleController extends Controller
         }
 
         // Check for scheduling conflicts
-        $conflict = ClassSchedule::where('teacher_id', $request->teacher_id)
-            ->where('day', $request->day)
-            ->where('lesson_hours', $request->lesson_hours)
-            ->exists();
+        // $conflict = ClassSchedule::where('day', $request->day)
+        // ->where('class_id', $request->class_id)
+        // ->where('lesson_hours', $request->lesson_hours)
+        //     ->exists();
 
-        if ($conflict) {
-            return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
-        }
+        // if ($conflict) {
+        //     return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
+        // }
 
         try {
             $schedule = ClassSchedule::create($request->all());
@@ -117,15 +117,15 @@ class ClassScheduleController extends Controller
             return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
         }
 
-        $conflict = ClassSchedule::where('teacher_id', $request->teacher_id)
-            ->where('day', $request->day)
-            ->where('lesson_hours', $request->lesson_hours)
-            ->where('id', '!=', $id)
-            ->exists();
+        // $conflict = ClassSchedule::where('teacher_id', $request->teacher_id)
+        //     ->where('day', $request->day)
+        //     ->where('lesson_hours', $request->lesson_hours)
+        //     ->where('id', '!=', $id)
+        //     ->exists();
 
-        if ($conflict) {
-            return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
-        }
+        // if ($conflict) {
+        //     return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
+        // }
 
         try {
             $schedule = ClassSchedule::findOrFail($id);
@@ -163,11 +163,18 @@ class ClassScheduleController extends Controller
                 return [$schedule->day, $schedule->lesson_hours];
             });
 
+            // i want to get list number 1 - $totalDuration on most many duration on one day
+            $totalDuration = $sortedSchedules->groupBy('day')->map(function ($schedules) {
+                return $schedules->sum('duration');
+            })->max();
+
+
             $response = [
+                'dataClass' => Classes::where('name', $className)->first(),
                 'schedules' => $sortedSchedules->values()->all(),
                 'total_subjects' => $totalSubjects,
                 'total_duration' => $totalDuration,
-                'list_lesson_hours' => $schedules->pluck('lesson_hours')->unique()->sort()->values()->all(),
+                'list_lesson_hours' => $totalDuration > 0 ? range(1, $totalDuration) : [],
             ];
 
             return $this->json(200, 'Class schedules retrieved successfully', $response);
@@ -196,15 +203,15 @@ class ClassScheduleController extends Controller
         }
 
         foreach ($schedules as $scheduleData) {
-            $conflict = ClassSchedule::where('teacher_id', $scheduleData['teacher_id'])
-                ->where('day', $scheduleData['day'])
-                ->where('lesson_hours', $scheduleData['lesson_hours'])
-                ->where('id', '!=', $scheduleData['id'])
-                ->exists();
+            // $conflict = ClassSchedule::where('teacher_id', $scheduleData['teacher_id'])
+            //     ->where('day', $scheduleData['day'])
+            //     ->where('lesson_hours', $scheduleData['lesson_hours'])
+            //     ->where('id', '!=', $scheduleData['id'])
+            //     ->exists();
 
-            if ($conflict) {
-                return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
-            }
+            // if ($conflict) {
+            //     return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
+            // }
 
             try {
                 $schedule = ClassSchedule::findOrFail($scheduleData['id']);
