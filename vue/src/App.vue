@@ -36,15 +36,15 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col h-screen bg-gray-100">
-    <Header class="mb-4" :toggleSidebar="toggleSidebar" />
+    <Header class="mb-2" :toggleSidebar="toggleSidebar" />
 
     <div class="h-full flex overflow-hidden relative">
       <transition name="slide" appear>
         <Sidebar v-show="isSidebarVisible" :toggleSidebar="toggleSidebar"
-          class="h-full inset-y-0 transform z-50 bg-white" :class="!isMobile ? 'absolute' : 'fixed'" />
+          class="h-full inset-y-0 transform z-40 bg-white" :class="!isMobile ? 'absolute' : 'fixed'" />
       </transition>
 
-      <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-40" @click="toggleSidebar">
+      <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-30" @click="toggleSidebar">
       </div>
 
       <main :class="isSidebarVisible && !isMobile ? 'ml-56' : 'ml-0'"
