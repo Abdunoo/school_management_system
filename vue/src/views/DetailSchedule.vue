@@ -18,8 +18,10 @@
             <!-- Lesson Hours Column -->
             <div class="flex-shrink-0 w-20 pt-20">
                 <div class="space-y-4 mt-8">
-                    <div v-for="hour in lessonHours" :key="hour"
-                        class="h-20 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                    <div v-for="hour in lessonHours" :key="hour" :class="{
+                        'bg-primary-100 border-primary': isLessonHourHighlighted(hour)
+                    }"
+                        class="h-20 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm transition-all duration-200">
                         <span class="text-sm font-medium text-gray-700">Jam ke-{{ hour }}</span>
                     </div>
                 </div>
@@ -41,7 +43,8 @@
                             @end="onDragEnd">
                             <template #item="{ element: schedule }">
                                 <div :id="`${schedule.id}`" @click="openModal('edit', schedule)"
-                                    :style="{ height: `${schedule.duration * (5 + 1) - 1}rem ` }"
+                                    @mouseenter="setHoveredSchedule(schedule)" @mouseleave="clearHoveredSchedule"
+                                    :style="{ height: `${schedule.duration * (5 + 1) - 1}rem` }"
                                     class="relative p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-primary transition-all duration-200 cursor-pointer">
                                     <!-- Top Right Badge -->
                                     <span class="handle absolute top-2 right-2">
@@ -95,7 +98,7 @@
                 <div class="mb-4">
                     <label for="subject_id" class="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
                     <v-select id="subject_id" v-model="form.subject_id" :options="subjects"
-                        @input="searchSubject($event.target.value)" :reduce="(option) => option.id" label="name"
+                        @input="searchSubject($event.target.value)" :reduce="(option: any) => option.id" label="name"
                         placeholder="Pilih Mata Pelajaran" required class="text-gray-500" :open-on-focus="false"
                         :class="formErrors.subject_id ? 'border-red-500' : 'border-gray-300'"
                         aria-invalid="formErrors.subject_id ? 'true' : 'false'" />
@@ -107,7 +110,7 @@
                 <div class="mb-4">
                     <label for="teacher_id" class="block text-sm font-medium text-gray-700">Guru</label>
                     <v-select id="teacher_id" v-model="form.teacher_id" :options="teacherOptions"
-                        @input="searchTeacher($event.target.value)" :reduce="(option) => option.value" label="label"
+                        @input="searchTeacher($event.target.value)" :reduce="(option: any) => option.value" label="label"
                         placeholder="Pilih Guru" required class="text-gray-500" :open-on-focus="false" />
                     <div v-if="formErrors.teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.teacher_id }}
                     </div>
@@ -117,7 +120,7 @@
                 <div class="mb-4">
                     <label for="day" class="block text-sm font-medium text-gray-700">Hari</label>
                     <v-select id="day" class="text-gray-500" v-model="form.day" :options="dayOptions" label="label"
-                        :reduce="(option) => option.value" required placeholder="Pilih Hari" :open-on-focus="false" />
+                        :reduce="(option: any) => option.value" required placeholder="Pilih Hari" :open-on-focus="false" />
                     <div v-if="formErrors.day" class="mt-1 text-sm text-red-500">{{ formErrors.day }}</div>
                 </div>
 
@@ -157,7 +160,6 @@ import { ClassScheduleItem, ClassItem, Subject, Teacher } from '@/types';
 import router from '@/router';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
-import Badge from '@/components/common/Badge.vue';
 import { switchMap } from 'rxjs/operators';
 import { UserIcon, CalendarIcon, Bars3Icon } from '@heroicons/vue/24/outline';
 
@@ -186,7 +188,6 @@ const lessonHours = ref<number[]>([]);
 
 const addLessonHour = (count: number) => {
     for (let i = 0; i < count; i++) {
-    console.log('Adding lesson hour:', count);
         const nextHour = lessonHours.value.length + 1;
         lessonHours.value.push(nextHour);
     }
@@ -224,8 +225,6 @@ const fetchClassSchedules = debounce(() => {
             columns.value = mapScheduleToColumns(data.schedules);
             lessonHours.value = data.list_lesson_hours;
             selectedClass.value = data.schedules[0]?.class;
-            console.log(teachers.value)
-            console.log(teacherOptions.value)
             return [];
         })
     ).subscribe({
@@ -345,8 +344,8 @@ const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
     modalTitle.value = action === 'add' ? 'Tambah Jadwal' : 'Edit Jadwal';
     showModal.value = true;
     if (action === 'edit' && schedule) {
-        subjects.value = [{ id: schedule.subject_id, name: schedule.subject.name }];
-        teachers.value = [{ id: schedule.teacher_id, user: { username: schedule.teacher.user.username } }];
+        subjects.value = schedule.subject ? [{ id: schedule.subject_id, name: schedule.subject.name }] : [];
+        teachers.value = schedule.teacher && schedule.teacher.user ? [{ id: schedule.teacher_id, user: { username: schedule.teacher.user.username } }] : [];
         form.value = {
             id: schedule.id,
             class_id: schedule.class_id,
@@ -359,11 +358,9 @@ const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
             subject: schedule.subject,
             teacher: schedule.teacher,
         };
-        // fetchTeachers(schedule.subject_id ?? 0); // Fetch teachers based on the selected subject
     } else {
         form.value = resetForm();
     }
-    console.log('Form:', form.value);
 };
 
 watch(() => form.value.subject_id, (newSubjectId) => {
@@ -373,31 +370,20 @@ watch(() => form.value.subject_id, (newSubjectId) => {
 });
 
 const onDragEnd = (event: any) => {
-    const { item, to, from, newIndex, oldIndex } = event;
+    const { to, from, newIndex } = event;
 
     // Get column indices
     const toColumnIndex = parseInt(to.closest('.column').dataset.index);
     const fromColumnIndex = parseInt(from.closest('.column').dataset.index);
 
-    // Debugging: Log the event and indices
-    console.log('Event:', event);
-    console.log('From Column Index:', fromColumnIndex);
-    console.log('Old Index:', oldIndex);
-    console.log('To Column Index:', toColumnIndex);
-    console.log('New Index:', newIndex);
-
-    // Debugging: Log the columns array
-    console.log('Columns:', JSON.stringify(columns.value, null, 2));
-
     // Recalculate lesson_hours for the source column
     let sourceAccumulatedHours = 1;
     columns.value[fromColumnIndex].schedules.forEach((schedule) => {
         schedule.lesson_hours = sourceAccumulatedHours;
-        sourceAccumulatedHours += schedule.duration;
+        sourceAccumulatedHours += schedule.duration ?? 0;
     });
 
     const draggedSchedule = columns.value[toColumnIndex].schedules[newIndex];
-    console.log('Dragged Schedule:', draggedSchedule);
     // Update the dragged schedule's day to the target column's day
     draggedSchedule.day = columns.value[toColumnIndex].name;
 
@@ -405,12 +391,14 @@ const onDragEnd = (event: any) => {
     let targetAccumulatedHours = 1;
     columns.value[toColumnIndex].schedules.forEach((schedule) => {
         schedule.lesson_hours = targetAccumulatedHours;
-        targetAccumulatedHours += schedule.duration;
+        targetAccumulatedHours += schedule.duration ?? 0;
     });
 
     const latestLessonHours = lessonHours.value.length;
     if (targetAccumulatedHours > latestLessonHours) {
-        addLessonHour(draggedSchedule.duration);
+        if (typeof draggedSchedule.duration === 'number') {
+            addLessonHour(draggedSchedule.duration);
+        }
     }
 };
 
@@ -429,6 +417,26 @@ const isOverlapping = (draggedSchedule: any, existingSchedules: any[]): boolean 
 
         return (draggedStart < scheduleEnd && draggedEnd > scheduleStart);
     });
+};
+
+// Reactive state for the hovered schedule
+const hoveredSchedule = ref<ClassScheduleItem | null>(null);
+
+// Set the hovered schedule
+const setHoveredSchedule = (schedule: ClassScheduleItem) => {
+    hoveredSchedule.value = schedule;
+};
+
+// Clear the hovered schedule
+const clearHoveredSchedule = () => {
+    hoveredSchedule.value = null;
+};
+
+// Check if a lesson hour should be highlighted
+const isLessonHourHighlighted = (hour: number) => {
+    if (!hoveredSchedule.value) return false;
+    const { lesson_hours, duration } = hoveredSchedule.value;
+    return lesson_hours !== null && lesson_hours !== undefined && duration !== null && duration !== undefined && hour >= lesson_hours && hour < lesson_hours + duration;
 };
 
 const resetForm = () => ({
@@ -506,3 +514,16 @@ onMounted(() => {
     fetchClassSchedules();
 });
 </script>
+
+<style scoped>
+/* Add custom styles if needed */
+.bg-primary-100 {
+    background-color: #dbeafe;
+    /* Light blue */
+}
+
+.border-primary {
+    border-color: #3b82f6;
+    /* Blue */
+}
+</style>
