@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Classes;
 use App\Models\ClassSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ClassScheduleController extends Controller
@@ -75,16 +76,6 @@ class ClassScheduleController extends Controller
             return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
         }
 
-        // Check for scheduling conflicts
-        // $conflict = ClassSchedule::where('day', $request->day)
-        // ->where('class_id', $request->class_id)
-        // ->where('lesson_hours', $request->lesson_hours)
-        //     ->exists();
-
-        // if ($conflict) {
-        //     return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
-        // }
-
         try {
             $schedule = ClassSchedule::create($request->all());
             return $this->json(201, 'Class schedule created successfully', $schedule);
@@ -106,26 +97,17 @@ class ClassScheduleController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'class_id' => 'exists:classes,id',
-            'subject_id' => 'exists:subjects,id',
-            'teacher_id' => 'exists:teachers,id',
-            'start_time' => 'date_format:H:i',
-            'end_time' => 'date_format:H:i|after:start_time',
+            'class_id' => 'required|exists:classes,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'teacher_id' => 'required|exists:teachers,id',
+            'day' => 'required|string',
+            'lesson_hours' => 'required|integer',
+            'duration' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             return $this->json(422, 'Validation failed', null, ['errors' => $validator->errors()]);
         }
-
-        // $conflict = ClassSchedule::where('teacher_id', $request->teacher_id)
-        //     ->where('day', $request->day)
-        //     ->where('lesson_hours', $request->lesson_hours)
-        //     ->where('id', '!=', $id)
-        //     ->exists();
-
-        // if ($conflict) {
-        //     return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
-        // }
 
         try {
             $schedule = ClassSchedule::findOrFail($id);
@@ -187,6 +169,7 @@ class ClassScheduleController extends Controller
     {
         $schedules = $request->input('schedules');
 
+        // Validate the request
         $validator = Validator::make($request->all(), [
             'schedules' => 'required|array',
             'schedules.*.id' => 'required|exists:class_schedules,id',
@@ -203,17 +186,8 @@ class ClassScheduleController extends Controller
         }
 
         foreach ($schedules as $scheduleData) {
-            // $conflict = ClassSchedule::where('teacher_id', $scheduleData['teacher_id'])
-            //     ->where('day', $scheduleData['day'])
-            //     ->where('lesson_hours', $scheduleData['lesson_hours'])
-            //     ->where('id', '!=', $scheduleData['id'])
-            //     ->exists();
-
-            // if ($conflict) {
-            //     return $this->json(422, 'Scheduling conflict: The teacher is already assigned to another class at the same lesson hour on the same day.', null);
-            // }
-
             try {
+                // Update the schedule
                 $schedule = ClassSchedule::findOrFail($scheduleData['id']);
                 $schedule->update($scheduleData);
             } catch (\Exception $e) {
@@ -222,5 +196,68 @@ class ClassScheduleController extends Controller
         }
 
         return $this->json(200, 'Class schedules updated successfully', null);
+    }
+
+    public function getSchedulesConflicts()
+    {
+        // Step 1: Define the CTE
+        $cte = DB::table('class_schedules as cs1')
+            ->join('class_schedules as cs2', function ($join) {
+                $join->on('cs1.teacher_id', '=', 'cs2.teacher_id')
+                    ->on('cs1.day', '=', 'cs2.day')
+                    ->on('cs1.class_id', '!=', 'cs2.class_id');
+            })
+            ->join('teachers as t', 'cs1.teacher_id', '=', 't.id')
+            ->join('users as u', 't.user_id', '=', 'u.id')
+            ->join('classes as c1', 'cs1.class_id', '=', 'c1.id')
+            ->join('classes as c2', 'cs2.class_id', '=', 'c2.id')
+            ->join('subjects as s1', 'cs1.subject_id', '=', 's1.id')
+            ->join('subjects as s2', 'cs2.subject_id', '=', 's2.id')
+            ->where(function ($query) {
+                $query->whereBetween('cs1.lesson_hours', [
+                    DB::raw('cs2.lesson_hours'),
+                    DB::raw('cs2.lesson_hours + cs2.duration - 1')
+                ])
+                    ->orWhereBetween('cs2.lesson_hours', [
+                        DB::raw('cs1.lesson_hours'),
+                        DB::raw('cs1.lesson_hours + cs1.duration - 1')
+                    ]);
+            })
+            ->select(
+                'u.username as teacher_name',
+                'c1.name as class_1',
+                'c2.name as class_2',
+                's1.name as subject_1',
+                's2.name as subject_2',
+                'cs1.day',
+                'cs1.lesson_hours as lesson_hours_1',
+                'cs2.lesson_hours as lesson_hours_2'
+            );
+
+        // Step 2: Use the CTE in the main query
+        $conflicts = DB::table(DB::raw("({$cte->toSql()}) as cte"))
+            ->mergeBindings($cte) // Bind the CTE parameters
+            ->select(
+                'teacher_name',
+                DB::raw('ANY_VALUE(class_1) as class_1'), // Use ANY_VALUE for class_1
+                DB::raw('ANY_VALUE(class_2) as class_2'), // Use ANY_VALUE for class_2
+                DB::raw('ANY_VALUE(subject_1) as subject_1'), // Use ANY_VALUE for subject_1
+                DB::raw('ANY_VALUE(subject_2) as subject_2'), // Use ANY_VALUE for subject_2
+                DB::raw('ANY_VALUE(day) as day'), // Use ANY_VALUE for day
+                DB::raw('MIN(lesson_hours_1) as lesson_hours_1'),
+                DB::raw('MIN(lesson_hours_2) as lesson_hours_2')
+            )
+            ->groupBy('teacher_name') // Group only by teacher_name
+            ->orderBy('teacher_name')
+            ->orderBy('day')
+            ->orderBy('lesson_hours_1')
+            ->get();
+
+        // Return the conflicts as a JSON response
+        return $this->json(
+            200,
+            'Conflicting schedules retrieved successfully',
+            $conflicts
+        );
     }
 }

@@ -5,14 +5,15 @@ import Header from '@/components/Header.vue';
 import LoadingIndicator from '@/components/LoadingIndicator.vue';
 import Modal from './components/common/Modal.vue';
 import { useModalStore } from './stores/modalStore';
+import { useScheduleConflictsStore } from './stores/scheduleConflicts';
 
 const isSidebarVisible = ref(false);
+const isMobile = ref(window.innerWidth <= 1024);
+const scheduleConflictsStore = useScheduleConflictsStore();
 
 const toggleSidebar = () => {
   isSidebarVisible.value = !isSidebarVisible.value;
 };
-
-const isMobile = ref(window.innerWidth <= 1024);
 
 const updateIsMobile = () => {
   isMobile.value = window.innerWidth <= 1024;
@@ -25,6 +26,7 @@ onMounted(() => {
   if (!isMobile.value) {
     isSidebarVisible.value = true;
   }
+  scheduleConflictsStore.checkConflicts();
 });
 
 onUnmounted(() => {
@@ -39,10 +41,10 @@ onUnmounted(() => {
     <div class="h-full flex overflow-hidden relative">
       <transition name="slide" appear>
         <Sidebar v-show="isSidebarVisible" :toggleSidebar="toggleSidebar"
-          class="h-full inset-y-0 transform z-20 bg-white" :class="!isMobile ? 'absolute' : 'fixed'" />
+          class="h-full inset-y-0 transform z-50 bg-white" :class="!isMobile ? 'absolute' : 'fixed'" />
       </transition>
 
-      <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-10" @click="toggleSidebar">
+      <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-40" @click="toggleSidebar">
       </div>
 
       <main :class="isSidebarVisible && !isMobile ? 'ml-56' : 'ml-0'"

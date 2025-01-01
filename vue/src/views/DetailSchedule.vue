@@ -3,13 +3,35 @@
         <!-- Page Controls -->
         <div class="flex justify-between bg-gray-100 p-4 rounded-lg">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:space-x-6 space-y-4 sm:space-y-0">
-                <div class="flex items-center space-x-2">
-                    <Button variant="primary" @click="openModal('add')">Tambah Jadwal</Button>
-                </div>
-                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                    <Button variant="success">Export</Button>
-                    <Button variant="primary" @click="saveAllSchedules">Save All</Button>
+
+            <!-- Desktop Menu -->
+            <div class="hidden sm:flex sm:space-x-2">
+                <Button variant="primary" @click="openModal('add')">Tambah Jadwal</Button>
+                <Button variant="success">Export</Button>
+                <Button variant="primary" @click="saveAllSchedules">Save All</Button>
+            </div>
+
+            <!-- Mobile Dropdown Menu -->
+            <div class="sm:hidden relative">
+                <button @click="toggleDropdown"
+                    class="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary">
+                    <Bars3BottomLeftIcon class="w-6 h-6 text-gray-600" />
+                </button>
+
+                <!-- Dropdown Content -->
+                <div v-if="isDropdownOpen"
+                    class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <div class="p-2 space-y-2">
+                        <Button variant="primary" class="w-full justify-start" @click="openModal('add')">
+                            Tambah Jadwal
+                        </Button>
+                        <Button variant="success" class="w-full justify-start" @click="exportSchedules">
+                            Export
+                        </Button>
+                        <Button variant="primary" class="w-full justify-start" @click="saveAllSchedules">
+                            Save All
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,8 +132,8 @@
                 <div class="mb-4">
                     <label for="teacher_id" class="block text-sm font-medium text-gray-700">Guru</label>
                     <v-select id="teacher_id" v-model="form.teacher_id" :options="teacherOptions"
-                        @input="searchTeacher($event.target.value)" :reduce="(option: any) => option.value" label="label"
-                        placeholder="Pilih Guru" required class="text-gray-500" :open-on-focus="false" />
+                        @input="searchTeacher($event.target.value)" :reduce="(option: any) => option.value"
+                        label="label" placeholder="Pilih Guru" required class="text-gray-500" :open-on-focus="false" />
                     <div v-if="formErrors.teacher_id" class="mt-1 text-sm text-red-500">{{ formErrors.teacher_id }}
                     </div>
                 </div>
@@ -120,7 +142,8 @@
                 <div class="mb-4">
                     <label for="day" class="block text-sm font-medium text-gray-700">Hari</label>
                     <v-select id="day" class="text-gray-500" v-model="form.day" :options="dayOptions" label="label"
-                        :reduce="(option: any) => option.value" required placeholder="Pilih Hari" :open-on-focus="false" />
+                        :reduce="(option: any) => option.value" required placeholder="Pilih Hari"
+                        :open-on-focus="false" />
                     <div v-if="formErrors.day" class="mt-1 text-sm text-red-500">{{ formErrors.day }}</div>
                 </div>
 
@@ -149,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue';
 import draggable from 'vuedraggable';
 import debounce from 'lodash.debounce';
 import { from } from 'rxjs';
@@ -161,7 +184,7 @@ import router from '@/router';
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
 import { switchMap } from 'rxjs/operators';
-import { UserIcon, CalendarIcon, Bars3Icon } from '@heroicons/vue/24/outline';
+import { UserIcon, CalendarIcon, Bars3Icon, Bars3BottomLeftIcon } from '@heroicons/vue/24/outline';
 
 const className = router.currentRoute.value.params.name;
 const pageTitle = ref(`Jadwal Pembelajaran ${className} `);
@@ -341,6 +364,7 @@ const fetchTeachers = (subjectId: number) => {
 
 
 const openModal = (action: 'add' | 'edit', schedule?: ClassScheduleItem) => {
+    isDropdownOpen.value = false;
     modalTitle.value = action === 'add' ? 'Tambah Jadwal' : 'Edit Jadwal';
     showModal.value = true;
     if (action === 'edit' && schedule) {
@@ -498,6 +522,7 @@ const handleFormSubmit = debounce(async () => {
 }, 500);
 
 const saveAllSchedules = debounce(async () => {
+    isDropdownOpen.value = false;
     loadingStore.show();
     const schedules = columns.value.flatMap(column => column.schedules);
     from(apiClient.post(`${API_ENDPOINTS.BULK_UPDATE}`, { schedules })).subscribe({
@@ -510,8 +535,34 @@ const saveAllSchedules = debounce(async () => {
     });
 }, 500);
 
+const isDropdownOpen = ref(false);
+
+// Function to toggle dropdown
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+// Function to close dropdown when clicking outside
+const closeDropdownOnClickOutside = (event: MouseEvent) => {
+    const dropdown = document.querySelector('.relative');
+    if (dropdown && !dropdown.contains(event.target as Node)) {
+        isDropdownOpen.value = false;
+    }
+};
+
+const exportSchedules = () => {
+    console.log('Export schedules');
+    isDropdownOpen.value = false; // Close dropdown after clicking
+};
+
+
 onMounted(() => {
     fetchClassSchedules();
+    document.addEventListener('click', closeDropdownOnClickOutside);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', closeDropdownOnClickOutside);
 });
 </script>
 
