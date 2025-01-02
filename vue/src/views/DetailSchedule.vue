@@ -1,7 +1,7 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
-        <!-- Page Controls -->
-        <div class="flex justify-between bg-gray-100 p-4 rounded-lg">
+    <div class="bg-white rounded-2xl shadow p-4 space-y-4 h-full flex flex-col overflow-auto">
+        <!-- Table Controls -->
+        <div class="space-y-4 bg-gray-100 p-4 rounded-xl">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
 
             <!-- Desktop Menu -->

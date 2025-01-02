@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
+  <div class="bg-white rounded-3xl shadow p-4 space-y-4 h-full flex flex-col overflow-auto">
     <!-- Alert for Conflicts -->
-    <div v-if="scheduleConflictsStore.conflicts.length > 0" class="relative top-4 z-10">
+    <div v-if="scheduleConflictsStore.conflicts.length > 0" class="relative top-0 z-10">
       <div class="relative">
         <!-- Alert Box -->
         <div

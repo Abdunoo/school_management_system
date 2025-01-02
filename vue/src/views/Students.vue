@@ -1,16 +1,13 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
+  <div class="bg-white rounded-2xl shadow p-4 space-y-4 h-full flex flex-col overflow-auto">
     <!-- Table Controls -->
-    <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
+    <div class="space-y-4 bg-gray-100 p-4 rounded-xl">
       <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
       <div class="flex flex-col sm:flex-row sm:justify-between sm:space-x-6 space-y-4 sm:space-y-0">
         <div class="flex items-center space-x-2">
           <label for="perPage" class="text-sm font-medium text-secondary">Show</label>
-          <select
-            id="perPage"
-            v-model="perPage"
-            class="border w-16 border-gray-300 bg-white text-secondary rounded-md text-sm px-3 py-2 focus:ring-primary focus:border-primary"
-          >
+          <select id="perPage" v-model="perPage"
+            class="border w-16 border-gray-300 bg-white text-secondary rounded-md text-sm px-3 py-2 focus:ring-primary focus:border-primary">
             <option v-for="option in perPageOptions" :key="option" :value="option">{{ option }}</option>
           </select>
           <Button variant="primary" @click="toggleModal('add')">Tambah Siswa</Button>
@@ -18,13 +15,8 @@
         <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <Button variant="success">Export</Button>
           <div class="relative flex items-center">
-            <input
-              type="text"
-              v-model="searchQuery"
-              placeholder="Search..."
-              aria-label="Search students"
-              class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2 placeholder-secondary focus:outline-none"
-            />
+            <input type="text" v-model="searchQuery" placeholder="Search..." aria-label="Search students"
+              class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2 placeholder-secondary focus:outline-none" />
             <MagnifyingGlassIcon class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
           </div>
         </div>
@@ -36,7 +28,8 @@
       <table class="min-w-full table-auto text-sm text-left">
         <thead>
           <tr class="bg-gray-100 grid grid-cols-7 rounded-xl">
-            <th v-for="header in tableHeaders" :key="header.field" class="px-4 py-3 text-secondary cursor-pointer" @click="sort(header.field)">
+            <th v-for="header in tableHeaders" :key="header.field" class="px-4 py-3 text-secondary cursor-pointer"
+              @click="sort(header.field)">
               {{ header.label }}
               <span v-if="header.field && sortField === header.field">{{ sortOrder === 'asc' ? '▲' : '▼' }}</span>
             </th>
@@ -50,14 +43,16 @@
           <tr v-if="students.length === 0">
             <td colspan="7" class="text-center py-4 text-secondary">No students found.</td>
           </tr>
-          <tr v-for="student in students" :key="student.id" class="hover:bg-gray-100 transition grid grid-cols-7 items-center border-b">
+          <tr v-for="student in students" :key="student.id"
+            class="hover:bg-gray-100 transition grid grid-cols-7 items-center border-b">
             <td class="px-4 py-3 text-secondary">{{ student.nis }}</td>
             <td class="px-4 py-3 text-secondary">{{ student.tanggal_lahir }}</td>
             <td class="px-4 py-3 text-secondary">{{ student.alamat }}</td>
             <td class="px-4 py-3 text-secondary">{{ student.gender }}</td>
             <td class="px-4 py-3 text-secondary">{{ student.user?.username }}</td>
             <td class="px-4 py-3 text-secondary">
-              <Badge :variant="student.user?.is_active ? 'success' : 'danger'">{{ student.user?.is_active ? 'Active' : 'Inactive' }}</Badge>
+              <Badge :variant="student.user?.is_active ? 'success' : 'danger'">{{ student.user?.is_active ? 'Active' :
+                'Inactive' }}</Badge>
             </td>
             <td class="px-4 py-3 text-secondary">
               <Button variant="warning" @click="toggleModal('edit', student)">Edit</Button>
@@ -70,9 +65,11 @@
     <!-- Student Cards (Mobile) -->
     <div class="lg:hidden space-y-4">
       <div v-if="students.length === 0" class="text-center py-4 text-secondary">No students found.</div>
-      <div v-for="student in students" :key="student.id" class="relative p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
+      <div v-for="student in students" :key="student.id"
+        class="relative p-4 border rounded-lg bg-gray-50 shadow-sm hover:shadow-md transition">
         <div class="absolute top-4 right-4">
-          <Badge :variant="student.user?.is_active ? 'success' : 'danger'">{{ student.user?.is_active ? 'Active' : 'Inactive' }}</Badge>
+          <Badge :variant="student.user?.is_active ? 'success' : 'danger'">{{ student.user?.is_active ? 'Active' :
+            'Inactive' }}</Badge>
         </div>
         <h3 class="text-lg font-bold text-secondary">{{ student.nis }}</h3>
         <p class="text-sm text-secondary"><strong>Tanggal Lahir:</strong> {{ student.tanggal_lahir }}</p>
@@ -112,12 +109,9 @@
         <!-- Gender -->
         <div class="space-y-2">
           <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
-          <select
-            id="gender"
-            v-model="form.gender"
+          <select id="gender" v-model="form.gender"
             class="block w-full text-sm border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary px-3 py-2"
-            required
-          >
+            required>
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
@@ -127,16 +121,8 @@
         <!-- Pilih User -->
         <div class="space-y-2">
           <label for="user" class="block text-sm font-medium text-gray-700">Pilih User</label>
-          <v-select
-            id="user"
-            class="text-gray-500"
-            v-model="form.user"
-            :options="users"
-            label="username"
-            required
-            placeholder="Pilih User"
-            @input="searchUsers($event.target.value)"
-          />
+          <v-select id="user" class="text-gray-500" v-model="form.user" :options="users" label="username" required
+            placeholder="Pilih User" @input="searchUsers($event.target.value)" />
           <div v-if="formErrors.user" class="mt-1 text-sm text-red-500">{{ formErrors.user }}</div>
         </div>
       </form>

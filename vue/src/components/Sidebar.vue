@@ -79,54 +79,40 @@ defineProps<{
 
     <!-- Navigation -->
     <nav class="flex-1 overflow-y-auto px-3 py-4">
-  <div class="mb-4">
-    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-      Menu Utama
-    </h3>
-  </div>
-
-  <div class="space-y-1">
-    <router-link
-      v-for="item in menuItems"
-      :key="item.name"
-      :to="item.route"
-      :class="[
-        'sidebar-link group',
-        isRouteActive(item.route) ? 'bg-primary/10 text-primary' : 'text-gray-600'
-      ]"
-      @click="isMobileOrTablet ? toggleSidebar() : null"
-    >
-      <component
-        :is="item.icon"
-        :class="[
-          'w-5 h-5',
-          isRouteActive(item.route) ? 'text-primary' : 'text-gray-500 group-hover:text-gray-600'
-        ]"
-      />
-      <span class="text-sm">{{ item.name }}</span>
-
-      <ChevronRightIcon
-        :class="[
-          'w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity',
-          isRouteActive(item.route) ? 'text-primary' : 'text-gray-400'
-        ]"
-      />
-
-      <!-- Danger Notification Count Icon -->
-      <div
-        v-if="item.route === '/schedule' && scheduleConflictsStore.conflicts.length > 0"
-        class="relative ml-auto"
-      >
-        <BellAlertIcon class="w-6 h-6 text-danger" />
-        <div
-          class="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-danger border-2 border-white rounded-full"
-        >
-          {{ scheduleConflictsStore.conflicts.length }}
-        </div>
+      <div class="mb-4">
+        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Menu Utama
+        </h3>
       </div>
-    </router-link>
-  </div>
-</nav>
+
+      <div class="space-y-1">
+        <router-link v-for="item in menuItems" :key="item.name" :to="item.route" :class="[
+          'sidebar-link group',
+          isRouteActive(item.route) ? 'bg-primary/10 text-primary' : 'text-gray-600'
+        ]" @click="isMobileOrTablet ? toggleSidebar() : null">
+          <component :is="item.icon" :class="[
+            'w-5 h-5',
+            isRouteActive(item.route) ? 'text-primary' : 'text-gray-500 group-hover:text-gray-600'
+          ]" />
+          <span class="text-sm">{{ item.name }}</span>
+
+          <ChevronRightIcon :class="[
+            'w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity',
+            isRouteActive(item.route) ? 'text-primary' : 'text-gray-400'
+          ]" />
+
+          <!-- Danger Notification Count Icon -->
+          <div v-if="item.route === '/schedule' && scheduleConflictsStore.conflicts.length > 0"
+            class="relative ml-auto">
+            <BellAlertIcon class="w-6 h-6 text-danger" />
+            <div
+              class="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-danger border-2 border-white rounded-full">
+              {{ scheduleConflictsStore.conflicts.length }}
+            </div>
+          </div>
+        </router-link>
+      </div>
+    </nav>
 
     <!-- Bottom Section -->
     <div class="border-t p-3">

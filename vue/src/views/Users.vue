@@ -1,7 +1,7 @@
 <template>
-    <div class="bg-white rounded-lg shadow p-6 space-y-6 h-full flex flex-col overflow-auto">
+    <div class="bg-white rounded-2xl shadow p-4 space-y-4 h-full flex flex-col overflow-auto">
         <!-- Table Controls -->
-        <div class="space-y-4 bg-gray-100 p-4 rounded-lg">
+        <div class="space-y-4 bg-gray-100 p-4 rounded-xl">
             <span class="text-lg md:text-xl font-bold text-secondary">{{ pageTitle }}</span>
             <div class="flex flex-col sm:flex-row sm:justify-between sm:space-x-6 space-y-4 sm:space-y-0">
                 <div class="flex items-center space-x-2">

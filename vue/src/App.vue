@@ -36,7 +36,7 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col h-screen bg-gray-100">
-    <Header class="mb-2" :toggleSidebar="toggleSidebar" />
+    <Header class="mb-4" :toggleSidebar="toggleSidebar" />
 
     <div class="h-full flex overflow-hidden relative">
       <transition name="slide" appear>
@@ -47,7 +47,7 @@ onUnmounted(() => {
       <div v-if="isSidebarVisible && isMobile" class="fixed inset-0 bg-black bg-opacity-50 z-30" @click="toggleSidebar">
       </div>
 
-      <main :class="isSidebarVisible && !isMobile ? 'ml-56' : 'ml-0'"
+      <main :class="isSidebarVisible && !isMobile ? 'ml-[228px]' : 'ml-0'"
         class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 rounded-3xl transition-all duration-300 ease-in-out">
         <router-view />
       </main>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -74,6 +75,14 @@ class StudentController extends Controller
             return $this->json(422, 'Validation failed', null, ['message' => $validator->errors()]);
         }
 
+        $user = User::where('id', $request->user_id)->first();
+        if ($user->role == 'teacher') {
+            return $this->json(
+                422,
+                'Validation failed: User already has a teacher role'
+            );
+        }
+
         try {
             $student = Student::create($request->only(['nis', 'tanggal_lahir', 'alamat', 'gender', 'user_id']));
             return $this->json(201, 'Student created successfully', $student);
@@ -117,6 +126,14 @@ class StudentController extends Controller
 
         if ($validator->fails()) {
             return $this->json(422, 'Validation failed', null, ['message' => $validator->errors()]);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+        if ($user->role == 'teacher') {
+            return $this->json(
+                422,
+                'Validation failed: User already has a teacher role'
+            );
         }
 
         try {

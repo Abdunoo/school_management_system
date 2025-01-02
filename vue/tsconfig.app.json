@@ -25,6 +25,7 @@
     "noFallthroughCasesInSwitch": true,
     
     "types": [
+      "vue",
       "vs-vue3-select"
     ]
   },
